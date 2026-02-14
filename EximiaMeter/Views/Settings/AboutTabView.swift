@@ -12,14 +12,18 @@ struct AboutTabView: View {
             VStack(spacing: ExTokens.Spacing._24) {
                 // App identity
                 VStack(spacing: ExTokens.Spacing._12) {
-                    Image(systemName: "gauge.with.dots.needle.33percent")
-                        .font(.system(size: 36))
-                        .foregroundColor(ExTokens.Colors.accentPrimary)
+                    ExLogoIcon(size: 48)
 
                     VStack(spacing: 4) {
-                        Text("exímIA Meter")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(ExTokens.Colors.textPrimary)
+                        HStack(alignment: .lastTextBaseline, spacing: 5) {
+                            Text("exímIA")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(ExTokens.Colors.textPrimary)
+
+                            Text("Meter")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(ExTokens.Colors.accentPrimary)
+                        }
 
                         Text("v\(appVersion) (build \(buildNumber))")
                             .font(.system(size: 11, weight: .medium, design: .monospaced))

@@ -30,28 +30,19 @@ struct HeaderView: View {
 
             Spacer()
 
-            // Right: Settings + Refresh
-            HStack(spacing: 8) {
-                Button {
-                    appViewModel.refresh()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11))
-                        .foregroundColor(ExTokens.Colors.textMuted)
-                }
-                .buttonStyle(.plain)
-                .help("Refresh data")
-
-                Button {
-                    AppDelegate.shared?.openSettings()
-                } label: {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(ExTokens.Colors.textMuted)
-                }
-                .buttonStyle(.plain)
-                .help("Settings")
+            // Right: Settings
+            Button {
+                AppDelegate.shared?.openSettings()
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(ExTokens.Colors.textTertiary)
+                    .frame(width: 28, height: 28)
+                    .background(ExTokens.Colors.backgroundElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
             }
+            .buttonStyle(.plain)
+            .help("Settings")
         }
         .padding(.horizontal, ExTokens.Spacing.popoverPadding)
         .padding(.vertical, ExTokens.Spacing._12)

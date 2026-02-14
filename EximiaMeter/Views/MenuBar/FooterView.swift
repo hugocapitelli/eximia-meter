@@ -5,9 +5,21 @@ struct FooterView: View {
 
     var body: some View {
         HStack(spacing: ExTokens.Spacing._8) {
-            Text("Updated \(appViewModel.usageViewModel.timeSinceUpdate)")
-                .font(ExTokens.Typography.caption)
-                .foregroundColor(ExTokens.Colors.textMuted)
+            Button {
+                appViewModel.refresh()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 9))
+                        .foregroundColor(ExTokens.Colors.textMuted)
+
+                    Text("Updated \(appViewModel.usageViewModel.timeSinceUpdate)")
+                        .font(ExTokens.Typography.caption)
+                        .foregroundColor(ExTokens.Colors.textMuted)
+                }
+            }
+            .buttonStyle(.plain)
+            .help("Click to refresh")
 
             Spacer()
 
