@@ -8,7 +8,22 @@ class ProjectsViewModel {
 
     func load() {
         projects = store.loadProjects()
+        pruneInvalidProjects()
         refreshAIOSStatus()
+    }
+
+    /// Remove projects whose path no longer exists on disk
+    private func pruneInvalidProjects() {
+        let fm = FileManager.default
+        let before = projects.count
+        projects.removeAll { project in
+            !fm.fileExists(atPath: project.path)
+        }
+        if projects.count != before {
+            reindex()
+            save()
+            print("[Projects] pruned \(before - projects.count) project(s) with invalid paths")
+        }
     }
 
     /// Returns projects discovered in ~/.claude/projects/ that are NOT already in the user's list

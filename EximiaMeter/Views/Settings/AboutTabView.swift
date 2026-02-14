@@ -179,6 +179,17 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.5.8", items: [
+                                "Fix: projects with deleted paths are auto-pruned on startup",
+                                "Projects: eye toggle hides/shows project on main page (dimmed when hidden)",
+                                "Projects: full path displayed (up to 2 lines)",
+                                "Discover: skips projects whose path no longer exists"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.5.7", items: [
                                 "Fix: force dark mode on all views (fixes black text on light mode Macs)"
                             ])

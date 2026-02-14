@@ -282,7 +282,7 @@ struct ProjectSettingsRow: View {
             Button(action: onToggleVisibility) {
                 Image(systemName: project.showOnMainPage ? "eye.fill" : "eye.slash")
                     .font(.system(size: 11))
-                    .foregroundColor(project.showOnMainPage ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
+                    .foregroundColor(project.showOnMainPage ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted.opacity(0.5))
                     .frame(width: 24, height: 24)
                     .contentShape(Rectangle())
             }
@@ -309,13 +309,13 @@ struct ProjectSettingsRow: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(project.name)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(ExTokens.Colors.textPrimary)
+                    .foregroundColor(project.showOnMainPage ? ExTokens.Colors.textPrimary : ExTokens.Colors.textTertiary)
 
                 Text(project.path)
                     .font(.system(size: 8, design: .monospaced))
                     .foregroundColor(ExTokens.Colors.textMuted)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
             }
 
             Spacer()
@@ -339,6 +339,7 @@ struct ProjectSettingsRow: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
+        .opacity(project.showOnMainPage ? 1.0 : 0.5)
         .background(
             project.showOnMainPage
                 ? ExTokens.Colors.backgroundCard

@@ -23,6 +23,9 @@ struct ProjectDiscoveryService {
                 let sessionCount = countSessions(in: fullPath)
                 let isAIOS = checkIsAIOSProject(at: decodedPath)
 
+                // Skip projects whose decoded path doesn't exist on disk
+                guard fm.fileExists(atPath: decodedPath) else { return nil }
+
                 return Project(
                     name: name,
                     path: decodedPath,
