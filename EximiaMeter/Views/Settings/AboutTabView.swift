@@ -179,6 +179,14 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.5.4", items: [
+                                "Fix: AIOS detection now re-checks on every popover open (installs detected immediately)"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.5.3", items: [
                                 "Fix: macOS notifications now appear in preview (Settings → Alerts → Test)",
                                 "Fix: notification permission requested on app start (not conditional)",

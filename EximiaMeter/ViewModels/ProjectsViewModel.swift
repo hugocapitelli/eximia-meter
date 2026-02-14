@@ -8,6 +8,7 @@ class ProjectsViewModel {
 
     func load() {
         projects = store.loadProjects()
+        refreshAIOSStatus()
     }
 
     /// Returns projects discovered in ~/.claude/projects/ that are NOT already in the user's list
@@ -77,6 +78,22 @@ class ProjectsViewModel {
         projects
             .filter(\.showOnMainPage)
             .sorted { $0.sortOrder < $1.sortOrder }
+    }
+
+    /// Re-check AIOS status for all projects by verifying .aios-core directory existence
+    func refreshAIOSStatus() {
+        let fm = FileManager.default
+        var changed = false
+        for i in projects.indices {
+            let hasAIOS = fm.fileExists(atPath: "\(projects[i].path)/.aios-core")
+            if projects[i].isAIOSProject != hasAIOS {
+                projects[i].isAIOSProject = hasAIOS
+                changed = true
+            }
+        }
+        if changed {
+            save()
+        }
     }
 
     private func reindex() {
