@@ -28,6 +28,12 @@ final class AnthropicUsageService {
         let rateLimitTier: String?
     }
 
+    /// Force re-read credentials from Keychain (call when user clicks Reconnect or popover opens).
+    func refreshCredentials() {
+        credentialsFetched = true
+        cachedCredentials = readCredentials()
+    }
+
     /// Returns account connection info from cached/Keychain credentials.
     func getAccountInfo() -> AccountInfo {
         if !credentialsFetched {
@@ -43,6 +49,25 @@ final class AnthropicUsageService {
         var expired = false
         if let expiresAt = credentials.expiresAt {
             expired = Date().timeIntervalSince1970 * 1000 > Double(expiresAt)
+        }
+
+        // If token is expired, re-read from Keychain — CLI may have refreshed it
+        if expired {
+            cachedCredentials = readCredentials()
+            if let refreshed = cachedCredentials {
+                let stillExpired: Bool
+                if let newExpiry = refreshed.expiresAt {
+                    stillExpired = Date().timeIntervalSince1970 * 1000 > Double(newExpiry)
+                } else {
+                    stillExpired = false
+                }
+                return AccountInfo(
+                    isConnected: refreshed.accessToken != nil && !stillExpired,
+                    tokenExpired: stillExpired,
+                    subscriptionType: refreshed.subscriptionType,
+                    rateLimitTier: refreshed.rateLimitTier
+                )
+            }
         }
 
         return AccountInfo(
@@ -62,18 +87,24 @@ final class AnthropicUsageService {
 
     /// Fetch usage from Anthropic API. Returns nil if token unavailable or request fails.
     func fetchUsage() async -> UsageResponse? {
-        // Only attempt Keychain access once per app session to avoid repeated auth prompts
         if !credentialsFetched {
             credentialsFetched = true
             cachedCredentials = readCredentials()
         }
 
-        guard let credentials = cachedCredentials,
-              let accessToken = credentials.accessToken else { return nil }
+        guard var credentials = cachedCredentials,
+              var accessToken = credentials.accessToken else { return nil }
 
-        // Check if token is expired
+        // If token expired, re-read from Keychain (CLI may have refreshed)
         if let expiresAt = credentials.expiresAt, Date().timeIntervalSince1970 * 1000 > Double(expiresAt) {
-            return nil
+            cachedCredentials = readCredentials()
+            guard let refreshed = cachedCredentials,
+                  let newToken = refreshed.accessToken else { return nil }
+            if let newExpiry = refreshed.expiresAt, Date().timeIntervalSince1970 * 1000 > Double(newExpiry) {
+                return nil // still expired
+            }
+            credentials = refreshed
+            accessToken = newToken
         }
 
         var request = URLRequest(url: usageURL)

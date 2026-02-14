@@ -39,14 +39,37 @@ struct AccountTabView: View {
                         }
 
                         if !settings.isApiConnected {
-                            HStack(spacing: 6) {
-                                Image(systemName: "info.circle")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(ExTokens.Colors.textMuted)
+                            VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "info.circle")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(ExTokens.Colors.textMuted)
 
-                                Text("Authenticate with `claude` CLI to enable auto-detection")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(ExTokens.Colors.textMuted)
+                                    Text("Authenticate with `claude` CLI to enable auto-detection")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(ExTokens.Colors.textMuted)
+                                }
+
+                                Button {
+                                    AnthropicUsageService.shared.refreshCredentials()
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "arrow.clockwise")
+                                            .font(.system(size: 9))
+                                        Text("Reconnect")
+                                            .font(.system(size: 10, weight: .semibold))
+                                    }
+                                    .foregroundColor(ExTokens.Colors.accentPrimary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(ExTokens.Colors.accentPrimary.opacity(0.1))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: ExTokens.Radius.sm)
+                                            .stroke(ExTokens.Colors.accentPrimary.opacity(0.3), lineWidth: 1)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
+                                }
+                                .buttonStyle(HoverableButtonStyle())
                             }
                         }
 

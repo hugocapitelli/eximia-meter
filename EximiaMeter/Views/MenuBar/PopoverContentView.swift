@@ -54,6 +54,7 @@ struct PopoverContentView: View {
         .animation(.easeInOut(duration: 0.3), value: alertBanner)
         .onReceive(NotificationCenter.default.publisher(for: NSPopover.willShowNotification)) { _ in
             appViewModel.projectsViewModel.refreshAIOSStatus()
+            AnthropicUsageService.shared.refreshCredentials()
         }
         .onReceive(NotificationCenter.default.publisher(for: NotificationService.alertTriggeredNotification)) { notification in
             guard let userInfo = notification.userInfo,

@@ -179,6 +179,16 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.5.6", items: [
+                                "Fix: token expired auto-refreshes from Keychain (CLI may have renewed)",
+                                "New: Reconnect button in Account tab when disconnected",
+                                "Fix: credentials re-read on every popover open"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.5.5", items: [
                                 "Fix: Check for Updates now works inside .app bundle (URLSession instead of git)",
                                 "Fix: updated app is code-signed after auto-update (notifications work)"
