@@ -225,6 +225,16 @@ struct AlertsTabView: View {
             ? "Session usage at 95%! Near limit."
             : "Session usage at 65% — warning level"
 
+        // Sync settings to service before firing
+        let service = NotificationService.shared
+        service.soundEnabled = settings.soundEnabled
+        service.inAppPopupEnabled = settings.inAppPopupEnabled
+        service.systemNotificationsEnabled = settings.systemNotificationsEnabled
+        service.alertSound = settings.alertSound
+
+        // Ensure permission is requested
+        service.requestPermission()
+
         // Play custom sound
         if settings.soundEnabled {
             settings.alertSound.play()
@@ -245,7 +255,7 @@ struct AlertsTabView: View {
 
         // macOS system notification
         if settings.systemNotificationsEnabled {
-            NotificationService.shared.sendTestNotification(severity: severity)
+            service.sendTestNotification(severity: severity)
         }
     }
 

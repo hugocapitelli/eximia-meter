@@ -9,7 +9,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
     private var notifiedThresholds: Set<String> = []
     private var lastNotifiedAt: [String: Date] = [:]
-    private var isAvailable = false
+    private var permissionGranted = false
 
     private let cooldownInterval: TimeInterval = 300 // 5 minutes
 
@@ -19,22 +19,31 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
     var systemNotificationsEnabled: Bool = true
     var alertSound: AlertSound = .default
 
+    override init() {
+        super.init()
+        // Always set delegate immediately so foreground notifications work
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+    }
+
     func requestPermission() {
         guard Bundle.main.bundleIdentifier != nil else {
-            print("Notifications unavailable: no bundle identifier (running via swift run?)")
+            print("[Notifications] unavailable: no bundle identifier")
             return
         }
 
-        isAvailable = true
-
         let center = UNUserNotificationCenter.current()
-        center.delegate = self
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error {
-                print("Notification permission error: \(error)")
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
+            DispatchQueue.main.async {
+                self?.permissionGranted = granted
             }
-            if !granted {
-                print("Notification permission not granted")
+            if let error {
+                print("[Notifications] permission error: \(error)")
+            }
+            if granted {
+                print("[Notifications] permission granted")
+            } else {
+                print("[Notifications] permission denied by user")
             }
         }
     }
@@ -47,27 +56,21 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        var options: UNNotificationPresentationOptions = [.banner]
+        var options: UNNotificationPresentationOptions = [.banner, .list]
         if soundEnabled {
             options.insert(.sound)
         }
         completionHandler(options)
     }
 
-    /// Handle notification tap (open popover)
+    /// Handle notification tap
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        // When user taps the notification, open the popover
         DispatchQueue.main.async {
-            if let delegate = AppDelegate.shared,
-               let popover = delegate.getPopover(),
-               !popover.isShown {
-                // Trigger the popover via the status bar button
-                NSApp.activate()
-            }
+            NSApp.activate()
         }
         completionHandler()
     }
@@ -75,8 +78,6 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
     // MARK: - Check & Notify
 
     func checkAndNotify(usageData: UsageData, thresholds: ThresholdConfig) {
-        guard isAvailable else { return }
-
         // Smart reset: if usage drops below threshold, allow re-notification
         resetIfBelow(id: "session-warning", value: usageData.sessionUsage, threshold: thresholds.sessionWarning)
         resetIfBelow(id: "session-critical", value: usageData.sessionUsage, threshold: thresholds.sessionCritical)
@@ -127,8 +128,6 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
     /// Send a test system notification (for preview from Settings)
     func sendTestNotification(severity: String) {
-        guard isAvailable, systemNotificationsEnabled else { return }
-
         let title = severity == "critical" ? "Session Critical" : "Session Warning"
         let body = severity == "critical"
             ? "Session usage at 95%! Near limit."
@@ -139,12 +138,16 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         content.body = body
         content.sound = soundEnabled ? .default : nil
 
-        let request = UNNotificationRequest(
-            identifier: "preview-\(severity)-\(Date().timeIntervalSince1970)",
-            content: content,
-            trigger: nil
-        )
-        UNUserNotificationCenter.current().add(request)
+        let id = "preview-\(severity)-\(Int(Date().timeIntervalSince1970 * 1000))"
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                print("[Notifications] test notification failed: \(error)")
+            } else {
+                print("[Notifications] test notification sent: \(id)")
+            }
+        }
     }
 
     // MARK: - Private
@@ -175,7 +178,11 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
             content.sound = soundEnabled ? .default : nil
 
             let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
-            UNUserNotificationCenter.current().add(request)
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error {
+                    print("[Notifications] send failed: \(error)")
+                }
+            }
         }
 
         // Play custom sound (independent of system notification)

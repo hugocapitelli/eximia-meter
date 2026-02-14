@@ -179,6 +179,16 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.5.3", items: [
+                                "Fix: macOS notifications now appear in preview (Settings → Alerts → Test)",
+                                "Fix: notification permission requested on app start (not conditional)",
+                                "Fix: UNUserNotificationCenter delegate set immediately on init"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.5.2", items: [
                                 "macOS system notifications (Notification Center banners)",
                                 "Notifications appear even when app is in foreground",

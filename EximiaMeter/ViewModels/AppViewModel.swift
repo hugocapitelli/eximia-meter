@@ -18,9 +18,8 @@ class AppViewModel: ObservableObject {
         monitorService.start()
         projectsViewModel.load()
 
-        if settingsViewModel.notificationsEnabled {
-            NotificationService.shared.requestPermission()
-        }
+        // Always request permission — needed for system notifications to work
+        NotificationService.shared.requestPermission()
 
         refreshUsageData()
 
