@@ -179,6 +179,14 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.2.1", items: [
+                                "Fix: app now auto-reopens after updating"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.2.0", items: [
                                 "Improved header: prominent Settings button, plan badge",
                                 "Refresh integrated into footer timestamp",
@@ -357,15 +365,24 @@ struct AboutTabView: View {
     private func performUpdate() {
         isUpdating = true
 
+        // Write a standalone updater script to /tmp that survives app termination
         let appPath = Bundle.main.bundlePath
         let script = """
+        #!/bin/bash
         set -e
+        APP_PID=\(ProcessInfo.processInfo.processIdentifier)
+
+        # Wait for the current app to quit
+        while kill -0 $APP_PID 2>/dev/null; do sleep 0.2; done
+
         REPO_URL="https://github.com/hugocapitelli/eximia-meter.git"
         TMPDIR_PATH=$(mktemp -d)
         SRC_DIR="$TMPDIR_PATH/eximia-meter"
-        trap "rm -rf $TMPDIR_PATH" EXIT
+        trap "rm -rf $TMPDIR_PATH /tmp/eximia-updater.sh" EXIT
+
         git clone --depth 1 "$REPO_URL" "$SRC_DIR" 2>/dev/null
         cd "$SRC_DIR" && swift build -c release 2>/dev/null
+
         BINARY="$SRC_DIR/.build/release/EximiaMeter"
         APP_BUNDLE="$TMPDIR_PATH/exímIA Meter.app"
         mkdir -p "$APP_BUNDLE/Contents/MacOS"
@@ -375,35 +392,38 @@ struct AboutTabView: View {
         cp "$SRC_DIR/Info.plist" "$APP_BUNDLE/Contents/"
         cp "$SRC_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/" 2>/dev/null || true
         echo -n "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
+
         rm -rf "\(appPath)"
         cp -R "$APP_BUNDLE" "/Applications/"
-        sleep 0.5
         open "/Applications/exímIA Meter.app"
         """
 
+        let scriptPath = "/tmp/eximia-updater.sh"
+        try? script.write(toFile: scriptPath, atomically: true, encoding: .utf8)
+
+        // Launch the updater as a fully detached process
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
-        process.arguments = ["-c", script]
+        process.arguments = [scriptPath]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        // Detach from parent process group so it survives app termination
+        process.qualityOfService = .background
 
-        process.terminationHandler = { proc in
-            DispatchQueue.main.async {
-                if proc.terminationStatus == 0 {
-                    // Give the new app time to launch before quitting
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        NSApp.terminate(self)
-                    }
-                } else {
-                    isUpdating = false
-                    let alert = NSAlert()
-                    alert.messageText = "Update Failed"
-                    alert.informativeText = "Could not update exímIA Meter. Check your internet connection and try again."
-                    alert.alertStyle = .warning
-                    alert.addButton(withTitle: "OK")
-                    alert.runModal()
-                }
+        do {
+            try process.run()
+            // Quit the app — the detached script will wait for us to die, then update and relaunch
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                NSApp.terminate(self)
             }
+        } catch {
+            isUpdating = false
+            let alert = NSAlert()
+            alert.messageText = "Update Failed"
+            alert.informativeText = "Could not start the updater. Try reinstalling manually."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
         }
-
-        try? process.run()
     }
 }
