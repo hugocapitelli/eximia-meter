@@ -179,6 +179,14 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.4.1", items: [
+                                "Fix: app now truly reopens after update (nohup detach)"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.4.0", items: [
                                 "UX: hover & press feedback on all buttons",
                                 "UX: increased hit targets (Apple HIG 44pt min)",
@@ -390,18 +398,18 @@ struct AboutTabView: View {
 
         // Write a standalone updater script to /tmp that survives app termination
         let appPath = Bundle.main.bundlePath
+        let pid = ProcessInfo.processInfo.processIdentifier
         let script = """
         #!/bin/bash
         set -e
-        APP_PID=\(ProcessInfo.processInfo.processIdentifier)
 
         # Wait for the current app to quit
-        while kill -0 $APP_PID 2>/dev/null; do sleep 0.2; done
+        while kill -0 \(pid) 2>/dev/null; do sleep 0.3; done
 
         REPO_URL="https://github.com/hugocapitelli/eximia-meter.git"
         TMPDIR_PATH=$(mktemp -d)
         SRC_DIR="$TMPDIR_PATH/eximia-meter"
-        trap "rm -rf $TMPDIR_PATH /tmp/eximia-updater.sh" EXIT
+        trap "rm -rf $TMPDIR_PATH" EXIT
 
         git clone --depth 1 "$REPO_URL" "$SRC_DIR" 2>/dev/null
         cd "$SRC_DIR" && swift build -c release 2>/dev/null
@@ -418,25 +426,25 @@ struct AboutTabView: View {
 
         rm -rf "\(appPath)"
         cp -R "$APP_BUNDLE" "/Applications/"
+        sleep 0.5
         open "/Applications/exímIA Meter.app"
         """
 
         let scriptPath = "/tmp/eximia-updater.sh"
         try? script.write(toFile: scriptPath, atomically: true, encoding: .utf8)
 
-        // Launch the updater as a fully detached process
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/bin/bash")
-        process.arguments = [scriptPath]
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-        // Detach from parent process group so it survives app termination
-        process.qualityOfService = .background
+        // Use launchctl to spawn a truly independent process that survives app death
+        let launcher = Process()
+        launcher.executableURL = URL(fileURLWithPath: "/bin/bash")
+        launcher.arguments = ["-c", "nohup /bin/bash \(scriptPath) > /tmp/eximia-update.log 2>&1 &"]
+        launcher.standardOutput = FileHandle.nullDevice
+        launcher.standardError = FileHandle.nullDevice
 
         do {
-            try process.run()
-            // Quit the app — the detached script will wait for us to die, then update and relaunch
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            try launcher.run()
+            launcher.waitUntilExit()
+            // Quit the app — the nohup'd script will wait for us to die, then update and relaunch
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 NSApp.terminate(self)
             }
         } catch {
