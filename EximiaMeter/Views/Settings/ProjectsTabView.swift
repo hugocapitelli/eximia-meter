@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProjectsTabView: View {
     @EnvironmentObject var appViewModel: AppViewModel
+    @State private var showingDiscovery = false
 
     private var projects: ProjectsViewModel {
         appViewModel.projectsViewModel
@@ -26,7 +27,7 @@ struct ProjectsTabView: View {
 
                     HStack(spacing: 8) {
                         actionButton(icon: "magnifyingglass", label: "Discover") {
-                            projects.discoverProjects()
+                            showingDiscovery = true
                         }
 
                         actionButton(icon: "plus", label: "Add") {
@@ -52,11 +53,11 @@ struct ProjectsTabView: View {
                         .font(.system(size: 28))
                         .foregroundColor(ExTokens.Colors.textMuted)
 
-                    Text("No projects found")
+                    Text("No projects configured")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(ExTokens.Colors.textTertiary)
 
-                    Text("Click Discover to find projects from ~/.claude/")
+                    Text("Click Discover to find projects or Add to choose a folder")
                         .font(.system(size: 10))
                         .foregroundColor(ExTokens.Colors.textMuted)
                 }
@@ -88,6 +89,9 @@ struct ProjectsTabView: View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
             }
+        }
+        .sheet(isPresented: $showingDiscovery) {
+            DiscoverProjectsSheet(projectsViewModel: projects)
         }
     }
 
@@ -124,6 +128,131 @@ struct ProjectsTabView: View {
         if panel.runModal() == .OK, let url = panel.url {
             projects.addProject(path: url.path)
         }
+    }
+}
+
+// MARK: - Discover Projects Sheet
+
+struct DiscoverProjectsSheet: View {
+    let projectsViewModel: ProjectsViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var available: [Project] = []
+    @State private var selected: Set<String> = []
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            VStack(spacing: ExTokens.Spacing._6) {
+                Text("Discover Projects")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(ExTokens.Colors.textPrimary)
+
+                Text("Select projects from ~/.claude/projects/ to add")
+                    .font(.system(size: 11))
+                    .foregroundColor(ExTokens.Colors.textTertiary)
+            }
+            .padding(.top, ExTokens.Spacing._24)
+            .padding(.bottom, ExTokens.Spacing._16)
+
+            if available.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle")
+                        .font(.system(size: 24))
+                        .foregroundColor(ExTokens.Colors.statusSuccess)
+
+                    Text("All discovered projects are already added")
+                        .font(.system(size: 12))
+                        .foregroundColor(ExTokens.Colors.textSecondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: ExTokens.Spacing._6) {
+                        ForEach(available) { project in
+                            discoverRow(project)
+                        }
+                    }
+                    .padding(.horizontal, ExTokens.Spacing._16)
+                }
+            }
+
+            // Footer
+            HStack(spacing: ExTokens.Spacing._12) {
+                ExButton(title: "Cancel", variant: .outline, size: .md, fullWidth: true) {
+                    dismiss()
+                }
+
+                if !available.isEmpty {
+                    ExButton(
+                        title: "Add \(selected.count) Project\(selected.count == 1 ? "" : "s")",
+                        variant: .accent,
+                        size: .md,
+                        fullWidth: true
+                    ) {
+                        let toAdd = available.filter { selected.contains($0.name) }
+                        projectsViewModel.addDiscoveredProjects(toAdd)
+                        dismiss()
+                    }
+                }
+            }
+            .padding(ExTokens.Spacing._16)
+        }
+        .frame(width: 420, height: 360)
+        .background(ExTokens.Colors.backgroundPrimary)
+        .onAppear {
+            available = projectsViewModel.availableProjects()
+        }
+    }
+
+    private func discoverRow(_ project: Project) -> some View {
+        let isSelected = selected.contains(project.name)
+
+        return Button {
+            if isSelected {
+                selected.remove(project.name)
+            } else {
+                selected.insert(project.name)
+            }
+        } label: {
+            HStack(spacing: ExTokens.Spacing._12) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 16))
+                    .foregroundColor(isSelected ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
+
+                Image(systemName: "folder.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(hex: "#3B82F6"))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(project.name)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(ExTokens.Colors.textPrimary)
+
+                    Text(project.path)
+                        .font(.system(size: 8, design: .monospaced))
+                        .foregroundColor(ExTokens.Colors.textMuted)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+
+                Spacer()
+
+                if project.totalSessions > 0 {
+                    Text("\(project.totalSessions) sessions")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundColor(ExTokens.Colors.textTertiary)
+                }
+            }
+            .padding(.horizontal, ExTokens.Spacing._12)
+            .padding(.vertical, ExTokens.Spacing._8)
+            .background(isSelected ? ExTokens.Colors.backgroundCard : Color.clear)
+            .overlay(
+                RoundedRectangle(cornerRadius: ExTokens.Radius.md)
+                    .stroke(isSelected ? ExTokens.Colors.accentPrimary.opacity(0.3) : ExTokens.Colors.borderDefault, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.md))
+        }
+        .buttonStyle(.plain)
     }
 }
 

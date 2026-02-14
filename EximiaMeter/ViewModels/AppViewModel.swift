@@ -45,7 +45,6 @@ class AppViewModel: ObservableObject {
 
     func refresh() {
         monitorService.refresh()
-        projectsViewModel.discoverProjects()
         refreshUsageData()
     }
 

@@ -8,36 +8,22 @@ class ProjectsViewModel {
 
     func load() {
         projects = store.loadProjects()
-
-        // Always re-discover to pick up new projects and fix stale paths
-        discoverProjects()
     }
 
-    func discoverProjects() {
+    /// Returns projects discovered in ~/.claude/projects/ that are NOT already in the user's list
+    func availableProjects() -> [Project] {
         let discovered = ProjectDiscoveryService.discoverProjects()
         let existingNames = Set(projects.map(\.name))
+        return discovered.filter { !existingNames.contains($0.name) }
+    }
 
-        for project in discovered {
-            // Check if we already have this project by name (path may have changed)
-            if let index = projects.firstIndex(where: { $0.name == project.name }) {
-                // Update path if it changed (e.g. directory was renamed)
-                if projects[index].path != project.path {
-                    projects[index].path = project.path
-                }
-                projects[index].totalSessions = project.totalSessions
-                projects[index].isAIOSProject = project.isAIOSProject
-            } else if !existingNames.contains(project.name) {
-                var newProject = project
-                newProject.sortOrder = projects.count
-                projects.append(newProject)
-            }
+    /// Adds user-selected projects from discovery
+    func addDiscoveredProjects(_ selected: [Project]) {
+        for project in selected {
+            var newProject = project
+            newProject.sortOrder = projects.count
+            projects.append(newProject)
         }
-
-        // Remove projects whose paths no longer exist
-        projects.removeAll { project in
-            !FileManager.default.fileExists(atPath: project.path)
-        }
-
         save()
     }
 
