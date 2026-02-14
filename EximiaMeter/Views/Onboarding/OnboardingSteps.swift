@@ -302,6 +302,11 @@ struct OnboardingProjectsStep: View {
         }
     }
 
+    private func removeProject(_ project: Project) {
+        selectedProjectNames.remove(project.name)
+        available.removeAll { $0.id == project.id }
+    }
+
     private func addProjectFolder() {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
@@ -358,6 +363,16 @@ struct OnboardingProjectsStep: View {
                         .font(.system(size: 9, design: .monospaced))
                         .foregroundColor(ExTokens.Colors.textTertiary)
                 }
+
+                Button {
+                    removeProject(project)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(ExTokens.Colors.textMuted)
+                }
+                .buttonStyle(.plain)
+                .help("Remove project")
             }
             .padding(.horizontal, ExTokens.Spacing._12)
             .padding(.vertical, ExTokens.Spacing._8)
