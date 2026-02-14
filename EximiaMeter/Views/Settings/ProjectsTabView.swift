@@ -64,10 +64,13 @@ struct ProjectsTabView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-                    ForEach(Array(projects.projects.enumerated()), id: \.element.id) { index, project in
+                    ForEach(projects.projects.indices, id: \.self) { index in
+                        let project = projects.projects[index]
+                        let isVisible = project.showOnMainPage
                         ProjectSettingsRow(
                             index: index + 1,
                             project: project,
+                            isVisible: isVisible,
                             onToggleVisibility: {
                                 projects.toggleMainPage(for: project)
                             },
@@ -260,6 +263,7 @@ struct DiscoverProjectsSheet: View {
 struct ProjectSettingsRow: View {
     let index: Int
     let project: Project
+    let isVisible: Bool
     var onToggleVisibility: () -> Void
     var onModelChange: (ClaudeModel) -> Void
     var onRemove: () -> Void
@@ -267,9 +271,10 @@ struct ProjectSettingsRow: View {
     @State private var selectedModel: ClaudeModel
     @State private var isHovered = false
 
-    init(index: Int, project: Project, onToggleVisibility: @escaping () -> Void, onModelChange: @escaping (ClaudeModel) -> Void, onRemove: @escaping () -> Void) {
+    init(index: Int, project: Project, isVisible: Bool, onToggleVisibility: @escaping () -> Void, onModelChange: @escaping (ClaudeModel) -> Void, onRemove: @escaping () -> Void) {
         self.index = index
         self.project = project
+        self.isVisible = isVisible
         self.onToggleVisibility = onToggleVisibility
         self.onModelChange = onModelChange
         self.onRemove = onRemove
@@ -280,14 +285,14 @@ struct ProjectSettingsRow: View {
         HStack(spacing: 8) {
             // Visibility toggle
             Button(action: onToggleVisibility) {
-                Image(systemName: project.showOnMainPage ? "eye.fill" : "eye.slash")
+                Image(systemName: isVisible ? "eye.fill" : "eye.slash")
                     .font(.system(size: 11))
-                    .foregroundColor(project.showOnMainPage ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted.opacity(0.5))
+                    .foregroundColor(isVisible ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
                     .frame(width: 24, height: 24)
                     .contentShape(Rectangle())
             }
             .buttonStyle(HoverableButtonStyle())
-            .help(project.showOnMainPage ? "Hide from main page" : "Show on main page")
+            .help(isVisible ? "Hide from main page" : "Show on main page")
 
             // Index
             Text("\(index)")
@@ -309,7 +314,7 @@ struct ProjectSettingsRow: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(project.name)
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(project.showOnMainPage ? ExTokens.Colors.textPrimary : ExTokens.Colors.textTertiary)
+                    .foregroundColor(isVisible ? ExTokens.Colors.textPrimary : ExTokens.Colors.textTertiary)
 
                 Text(project.path)
                     .font(.system(size: 8, design: .monospaced))
@@ -339,19 +344,20 @@ struct ProjectSettingsRow: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .opacity(project.showOnMainPage ? 1.0 : 0.5)
+        .opacity(isVisible ? 1.0 : 0.5)
         .background(
-            project.showOnMainPage
+            isVisible
                 ? ExTokens.Colors.backgroundCard
                 : Color.clear
         )
         .overlay(
             RoundedRectangle(cornerRadius: ExTokens.Radius.md)
                 .stroke(
-                    project.showOnMainPage ? ExTokens.Colors.borderDefault : Color.clear,
+                    isVisible ? ExTokens.Colors.borderDefault : Color.clear,
                     lineWidth: 1
                 )
         )
         .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.md))
+        .animation(.easeInOut(duration: 0.15), value: isVisible)
     }
 }
