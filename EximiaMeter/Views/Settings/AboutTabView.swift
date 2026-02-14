@@ -179,6 +179,15 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.5.5", items: [
+                                "Fix: Check for Updates now works inside .app bundle (URLSession instead of git)",
+                                "Fix: updated app is code-signed after auto-update (notifications work)"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.5.4", items: [
                                 "Fix: AIOS detection now re-checks on every popover open (installs detected immediately)"
                             ])
@@ -418,32 +427,34 @@ struct AboutTabView: View {
         isChecking = true
         updateAvailable = nil
 
-        let script = """
-        TMPDIR_PATH=$(mktemp -d)
-        trap "rm -rf $TMPDIR_PATH" EXIT
-        git clone --depth 1 https://github.com/hugocapitelli/eximia-meter.git "$TMPDIR_PATH/repo" 2>/dev/null
-        /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$TMPDIR_PATH/repo/Info.plist" 2>/dev/null
-        """
-
-        let process = Process()
-        let pipe = Pipe()
-        process.executableURL = URL(fileURLWithPath: "/bin/bash")
-        process.arguments = ["-c", script]
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-
-        process.terminationHandler = { _ in
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            let version = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
+        // Use GitHub API (no git clone needed — faster and works without git in PATH)
+        let url = URL(string: "https://raw.githubusercontent.com/hugocapitelli/eximia-meter/main/Info.plist")!
+        URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 isChecking = false
-                remoteVersion = version
-                updateAvailable = !version.isEmpty && version != appVersion
-            }
-        }
 
-        try? process.run()
+                guard let data,
+                      let content = String(data: data, encoding: .utf8),
+                      let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200 else {
+                    print("[Updates] fetch failed: \(error?.localizedDescription ?? "unknown")")
+                    updateAvailable = false
+                    return
+                }
+
+                // Parse version from plist XML
+                if let range = content.range(of: "<key>CFBundleShortVersionString</key>"),
+                   let stringStart = content.range(of: "<string>", range: range.upperBound..<content.endIndex),
+                   let stringEnd = content.range(of: "</string>", range: stringStart.upperBound..<content.endIndex) {
+                    let version = String(content[stringStart.upperBound..<stringEnd.lowerBound])
+                    remoteVersion = version
+                    updateAvailable = !version.isEmpty && version != appVersion
+                    print("[Updates] remote: \(version), local: \(appVersion), available: \(updateAvailable ?? false)")
+                } else {
+                    updateAvailable = false
+                }
+            }
+        }.resume()
     }
 
     // MARK: - Perform update
@@ -478,6 +489,7 @@ struct AboutTabView: View {
         cp "$SRC_DIR/Info.plist" "$APP_BUNDLE/Contents/"
         cp "$SRC_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/" 2>/dev/null || true
         echo -n "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
+        codesign --force --deep --sign - "$APP_BUNDLE"
 
         rm -rf "\(appPath)"
         cp -R "$APP_BUNDLE" "/Applications/"
