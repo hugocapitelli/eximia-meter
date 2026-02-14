@@ -179,54 +179,15 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
-                            changelogEntry("v1.5.9", items: [
-                                "New: update banner on home page when new version is available"
-                            ])
-
-                            Rectangle()
-                                .fill(ExTokens.Colors.borderDefault)
-                                .frame(height: 1)
-
-                            changelogEntry("v1.5.8", items: [
-                                "Fix: projects with deleted paths are auto-pruned on startup",
-                                "Projects: eye toggle hides/shows project on main page (dimmed when hidden)",
-                                "Projects: full path displayed (up to 2 lines)",
-                                "Discover: skips projects whose path no longer exists"
-                            ])
-
-                            Rectangle()
-                                .fill(ExTokens.Colors.borderDefault)
-                                .frame(height: 1)
-
-                            changelogEntry("v1.5.7", items: [
-                                "Fix: force dark mode on all views (fixes black text on light mode Macs)"
-                            ])
-
-                            Rectangle()
-                                .fill(ExTokens.Colors.borderDefault)
-                                .frame(height: 1)
-
-                            changelogEntry("v1.5.6", items: [
-                                "Fix: token expired auto-refreshes from Keychain (CLI may have renewed)",
-                                "New: Reconnect button in Account tab when disconnected",
-                                "Fix: credentials re-read on every popover open"
-                            ])
-
-                            Rectangle()
-                                .fill(ExTokens.Colors.borderDefault)
-                                .frame(height: 1)
-
-                            changelogEntry("v1.5.5", items: [
-                                "Fix: Check for Updates now works inside .app bundle (URLSession instead of git)",
-                                "Fix: updated app is code-signed after auto-update (notifications work)"
-                            ])
-
-                            Rectangle()
-                                .fill(ExTokens.Colors.borderDefault)
-                                .frame(height: 1)
-
-                            changelogEntry("v1.5.4", items: [
-                                "Fix: AIOS detection now re-checks on every popover open (installs detected immediately)"
+                            changelogEntry("v1.6.0", items: [
+                                "Update banner on home page when new version is available",
+                                "Projects: eye toggle hides/shows on main page (with animation)",
+                                "Projects: full path displayed, deleted projects auto-pruned",
+                                "Reconnect button in Account tab when API disconnected",
+                                "Token expired auto-refreshes from Keychain on each popover open",
+                                "Check for Updates works inside .app (URLSession, no git needed)",
+                                "Auto-update now code-signs the bundle (notifications preserved)",
+                                "Force dark mode on all views (light mode Mac compatibility)"
                             ])
 
                             Rectangle()
