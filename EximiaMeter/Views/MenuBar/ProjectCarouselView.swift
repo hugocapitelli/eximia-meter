@@ -44,8 +44,10 @@ struct ProjectCarouselView: View {
 
                     Spacer()
                 }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverableButtonStyle())
             .padding(.horizontal, ExTokens.Spacing.popoverPadding)
 
             if isExpanded {
@@ -58,10 +60,11 @@ struct ProjectCarouselView: View {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(currentPage > 0 ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted.opacity(0.3))
+                            .frame(width: 24, height: 44)
+                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(HoverableButtonStyle())
                     .disabled(currentPage == 0)
-                    .frame(width: 16)
 
                     // Project cards — with swipe gesture
                     HStack(spacing: ExTokens.Spacing._6) {
@@ -117,19 +120,22 @@ struct ProjectCarouselView: View {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(currentPage < totalPages - 1 ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted.opacity(0.3))
+                            .frame(width: 24, height: 44)
+                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(HoverableButtonStyle())
                     .disabled(currentPage >= totalPages - 1)
-                    .frame(width: 16)
                 }
 
                 // Pagination dots
                 if totalPages > 1 {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 10) {
                         ForEach(0..<totalPages, id: \.self) { page in
                             Circle()
                                 .fill(page == currentPage ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
-                                .frame(width: 6, height: 6)
+                                .frame(width: 7, height: 7)
+                                .padding(6)
+                                .contentShape(Rectangle())
                                 .onTapGesture {
                                     withAnimation(.easeInOut(duration: 0.2)) {
                                         currentPage = page

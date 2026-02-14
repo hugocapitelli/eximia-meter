@@ -146,7 +146,7 @@ struct AccountTabView: View {
                     .foregroundColor(isSelected ? .black.opacity(0.6) : ExTokens.Colors.textMuted)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 10)
             .background(
                 isSelected
                     ? ExTokens.Colors.accentPrimary
@@ -160,8 +160,9 @@ struct AccountTabView: View {
                     )
             )
             .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.md))
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(HoverableButtonStyle())
     }
 
     private func limitBadge(label: String, value: String) -> some View {

@@ -17,8 +17,11 @@ struct FooterView: View {
                         .font(ExTokens.Typography.caption)
                         .foregroundColor(ExTokens.Colors.textMuted)
                 }
+                .padding(.vertical, 4)
+                .padding(.horizontal, 6)
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverableButtonStyle())
             .help("Click to refresh")
 
             Spacer()
@@ -30,11 +33,11 @@ struct FooterView: View {
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(ExTokens.Colors.statusCritical)
                     .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
+                    .padding(.vertical, 4)
                     .background(ExTokens.Colors.statusCritical.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.xs))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverableButtonStyle())
         }
         .padding(.horizontal, ExTokens.Spacing.popoverPadding)
         .padding(.vertical, ExTokens.Spacing._6)

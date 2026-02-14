@@ -108,7 +108,7 @@ struct GeneralTabView: View {
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                 .foregroundColor(isSelected ? .black : ExTokens.Colors.textTertiary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                .padding(.vertical, 8)
                 .background(
                     isSelected
                         ? ExTokens.Colors.accentPrimary
@@ -122,8 +122,9 @@ struct GeneralTabView: View {
                         )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(HoverableButtonStyle())
     }
 
     // MARK: - Terminal button
@@ -138,7 +139,7 @@ struct GeneralTabView: View {
                 .font(.system(size: 10, weight: .bold))
                 .foregroundColor(isSelected ? .black : ExTokens.Colors.textTertiary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 6)
+                .padding(.vertical, 8)
                 .background(
                     isSelected
                         ? ExTokens.Colors.accentPrimary
@@ -152,7 +153,8 @@ struct GeneralTabView: View {
                         )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
+                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(HoverableButtonStyle())
     }
 }

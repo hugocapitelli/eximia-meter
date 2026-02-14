@@ -20,12 +20,15 @@ struct ModelPickerView: View {
             }
         } label: {
             HStack(spacing: 4) {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 7))
                 Text(compact ? selectedModel.shortName : selectedModel.displayName)
                     .font(compact ? ExTokens.Typography.caption : ExTokens.Typography.subtitle)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 7))
             }
             .foregroundColor(ExTokens.Colors.accentPrimary)
+            .padding(.vertical, 2)
+            .padding(.horizontal, 4)
+            .contentShape(Rectangle())
         }
         .menuStyle(.borderlessButton)
         .fixedSize()

@@ -51,15 +51,16 @@ struct HistorySection: View {
                                             : ExTokens.Colors.textTertiary
                                     )
                                     .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
+                                    .padding(.vertical, 6)
                                     .background(
                                         selectedPeriod == period
                                             ? ExTokens.Colors.accentPrimary.opacity(0.1)
                                             : Color.clear
                                     )
                                     .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.xs))
+                                    .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(HoverableButtonStyle())
                         }
                     }
                     .padding(2)

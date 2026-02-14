@@ -60,13 +60,27 @@ struct SettingsWindowView: View {
     }
 
     private func sidebarItem(_ section: SettingsSection) -> some View {
-        let isSelected = selectedSection == section
-
-        return Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                selectedSection = section
+        SidebarItemButton(
+            section: section,
+            isSelected: selectedSection == section,
+            onSelect: {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    selectedSection = section
+                }
             }
-        } label: {
+        )
+    }
+}
+
+private struct SidebarItemButton: View {
+    let section: SettingsSection
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: onSelect) {
             HStack(spacing: ExTokens.Spacing._8) {
                 // Accent bar
                 RoundedRectangle(cornerRadius: 2)
@@ -75,12 +89,12 @@ struct SettingsWindowView: View {
 
                 Image(systemName: section.icon)
                     .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundColor(isSelected ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
+                    .foregroundColor(isSelected ? ExTokens.Colors.accentPrimary : isHovered ? ExTokens.Colors.textSecondary : ExTokens.Colors.textMuted)
                     .frame(width: 20)
 
                 Text(section.rawValue)
                     .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                    .foregroundColor(isSelected ? ExTokens.Colors.textPrimary : ExTokens.Colors.textTertiary)
+                    .foregroundColor(isSelected ? ExTokens.Colors.textPrimary : isHovered ? ExTokens.Colors.textSecondary : ExTokens.Colors.textTertiary)
 
                 Spacer()
             }
@@ -89,10 +103,16 @@ struct SettingsWindowView: View {
             .background(
                 isSelected
                     ? ExTokens.Colors.backgroundCard
-                    : Color.clear
+                    : isHovered ? ExTokens.Colors.backgroundCard.opacity(0.5) : Color.clear
             )
             .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.md))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isHovered = hovering
+            }
+        }
     }
 }

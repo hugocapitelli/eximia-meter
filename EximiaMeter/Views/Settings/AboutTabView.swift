@@ -110,7 +110,7 @@ struct AboutTabView: View {
                                 .background(ExTokens.Colors.accentPrimary)
                                 .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(HoverableButtonStyle())
                             .disabled(isUpdating)
                         } else {
                             // Check button
@@ -139,7 +139,7 @@ struct AboutTabView: View {
                                 )
                                 .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(HoverableButtonStyle())
                             .disabled(isChecking)
                         }
                     }
@@ -175,10 +175,22 @@ struct AboutTabView: View {
                                 .foregroundColor(ExTokens.Colors.textMuted)
                         }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(HoverableButtonStyle())
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.4.0", items: [
+                                "UX: hover & press feedback on all buttons",
+                                "UX: increased hit targets (Apple HIG 44pt min)",
+                                "UX: sidebar hover states in Settings",
+                                "Fix: consistent chevron icons on expand/collapse",
+                                "Fix: dropdown chevron position (text first)"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.3.0", items: [
                                 "Model Distribution: Sonnet now appears via fuzzy matching",
                                 "Per-Project: percentages show share of total usage",
@@ -253,7 +265,7 @@ struct AboutTabView: View {
                         }
                         .foregroundColor(ExTokens.Colors.accentPrimary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 8)
                         .background(ExTokens.Colors.accentPrimary.opacity(0.1))
                         .overlay(
                             RoundedRectangle(cornerRadius: ExTokens.Radius.sm)
@@ -261,7 +273,7 @@ struct AboutTabView: View {
                         )
                         .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(HoverableButtonStyle())
 
                     Button {
                         AppDelegate.shared?.uninstallApp()
@@ -274,7 +286,7 @@ struct AboutTabView: View {
                         }
                         .foregroundColor(ExTokens.Colors.destructive)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 8)
                         .background(ExTokens.Colors.destructiveBg)
                         .overlay(
                             RoundedRectangle(cornerRadius: ExTokens.Radius.sm)
@@ -282,7 +294,7 @@ struct AboutTabView: View {
                         )
                         .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(HoverableButtonStyle())
                 }
             }
             .padding(ExTokens.Spacing._24)

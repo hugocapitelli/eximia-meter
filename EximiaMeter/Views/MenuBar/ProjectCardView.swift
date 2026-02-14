@@ -49,11 +49,13 @@ struct ProjectCardView: View {
                         isExpanded.toggle()
                     }
                 } label: {
-                    Image(systemName: isExpanded ? "chevron.up" : "info.circle")
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .font(.system(size: 10))
                         .foregroundColor(ExTokens.Colors.accentPrimary.opacity(0.7))
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(HoverableButtonStyle())
             }
 
             // ─── Controls Row ───────────────────────────
@@ -101,11 +103,12 @@ struct ProjectCardView: View {
                                     .font(.system(size: 8, weight: .bold, design: .monospaced))
                                     .foregroundColor(detailPeriod == period ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
                                     .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
+                                    .padding(.vertical, 4)
                                     .background(detailPeriod == period ? ExTokens.Colors.accentPrimary.opacity(0.1) : Color.clear)
                                     .clipShape(RoundedRectangle(cornerRadius: 3))
+                                    .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(HoverableButtonStyle())
                         }
                     }
 
@@ -166,7 +169,7 @@ struct ProjectCardView: View {
                         )
                         .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(HoverableButtonStyle())
                 }
 
                 // Launch button
@@ -183,7 +186,7 @@ struct ProjectCardView: View {
                     .background(ExTokens.Colors.accentPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(HoverableButtonStyle())
             }
         }
         .padding(10)

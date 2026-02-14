@@ -210,8 +210,10 @@ struct ProjectUsageSection: View {
                         .font(ExTokens.Typography.micro)
                         .foregroundColor(ExTokens.Colors.textMuted)
                 }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverableButtonStyle())
             .padding(.top, 4)
 
             if isExpanded {

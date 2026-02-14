@@ -107,15 +107,16 @@ struct ProjectsTabView: View {
             }
             .foregroundColor(ExTokens.Colors.accentPrimary)
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
             .background(ExTokens.Colors.accentPrimary.opacity(0.1))
             .overlay(
                 RoundedRectangle(cornerRadius: ExTokens.Radius.sm)
                     .stroke(ExTokens.Colors.accentPrimary.opacity(0.2), lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(HoverableButtonStyle())
     }
 
     private func addProject() {
@@ -282,8 +283,10 @@ struct ProjectSettingsRow: View {
                 Image(systemName: project.showOnMainPage ? "eye.fill" : "eye.slash")
                     .font(.system(size: 11))
                     .foregroundColor(project.showOnMainPage ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverableButtonStyle())
             .help(project.showOnMainPage ? "Hide from main page" : "Show on main page")
 
             // Index
@@ -328,6 +331,8 @@ struct ProjectSettingsRow: View {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 12))
                     .foregroundColor(isHovered ? ExTokens.Colors.statusCritical : ExTokens.Colors.textMuted)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .onHover { hovering in isHovered = hovering }

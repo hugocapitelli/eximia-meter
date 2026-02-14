@@ -41,7 +41,7 @@ struct HeaderView: View {
                     .background(ExTokens.Colors.backgroundElevated)
                     .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(HoverableButtonStyle())
             .help("Settings")
         }
         .padding(.horizontal, ExTokens.Spacing.popoverPadding)
