@@ -1,5 +1,11 @@
 import Foundation
 
+enum UsageSource {
+    case api        // Layer 1: Anthropic OAuth API (authoritative)
+    case exactLocal // Layer 2: .jsonl exact scan
+    case estimated  // Layer 3: stats-cache × multiplier
+}
+
 struct UsageData {
     var weeklyUsage: Double = 0.0
     var dailyUsage: Double = 0.0
@@ -14,6 +20,8 @@ struct UsageData {
     var totalTokensThisSession: Int = 0
     var totalSessions: Int = 0
     var totalMessages: Int = 0
+
+    var usageSource: UsageSource = .estimated
 
     // Per-period stats
     var tokens24h: Int = 0

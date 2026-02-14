@@ -37,7 +37,17 @@ class UsageViewModel {
     var dailyModelTokens: [DailyModelTokens] = []
     var hourCounts: [String: Int] = [:]
 
+    var usageSource: UsageSource = .estimated
+
     var lastUpdated: Date = Date()
+
+    var usageSourceLabel: String {
+        switch usageSource {
+        case .api: return "API"
+        case .exactLocal: return "Local"
+        case .estimated: return "Est."
+        }
+    }
 
     var timeSinceUpdate: String {
         let interval = Date().timeIntervalSince(lastUpdated)
@@ -78,6 +88,7 @@ class UsageViewModel {
         dailyActivity = usageData.dailyActivity
         dailyModelTokens = usageData.dailyModelTokens
         hourCounts = usageData.hourCounts
+        usageSource = usageData.usageSource
         lastUpdated = usageData.lastUpdated
     }
 }

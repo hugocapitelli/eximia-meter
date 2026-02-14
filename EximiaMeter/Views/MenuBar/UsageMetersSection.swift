@@ -13,6 +13,14 @@ struct UsageMetersSection: View {
 
     var body: some View {
         VStack(spacing: ExTokens.Spacing._12) {
+            // ─── Data Source Indicator ─────────────────────
+            HStack {
+                Spacer()
+                Text("Source: \(usage.usageSourceLabel)")
+                    .font(ExTokens.Typography.micro)
+                    .foregroundColor(usage.usageSource == .api ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted)
+            }
+
             // ─── Weekly Usage (main meter) ──────────────────
             ExProgressBar(
                 value: usage.weeklyUsage,
@@ -141,29 +149,37 @@ struct ProjectUsageSection: View {
             .padding(.top, 4)
 
             if isExpanded {
-                ForEach(sortedProjects, id: \.0) { name, tokens in
-                    let pct = weeklyLimit > 0 ? min(Double(tokens) / Double(weeklyLimit), 1.0) : 0
+                let sorted = sortedProjects
+                let maxTokens = sorted.first?.1 ?? 1
+
+                ForEach(sorted, id: \.0) { name, tokens in
+                    // Bar relative to the top project (biggest = 100%)
+                    let pct = maxTokens > 0 ? Double(tokens) / Double(maxTokens) : 0
+                    let totalPct = perProjectTotal > 0 ? Int(Double(tokens) / Double(perProjectTotal) * 100) : 0
                     ExProgressBar(
                         value: pct,
                         label: name,
-                        detail: formatTokens(tokens),
-                        warningThreshold: 0.50,
-                        criticalThreshold: 0.80
+                        detail: "\(formatTokens(tokens)) (\(totalPct)% of total)",
+                        warningThreshold: 0.70,
+                        criticalThreshold: 0.90
                     )
                 }
             }
         }
     }
 
+    private var perProjectTotal: Int {
+        perProjectTokens.values.reduce(0, +)
+    }
+
     private var sortedProjects: [(String, Int)] {
         perProjectTokens
-            .map { path, tokens in
-                let name = projects.first(where: { $0.path == path })?.name
-                    ?? URL(fileURLWithPath: path).lastPathComponent
+            .map { dirName, tokens in
+                let name = ProjectUsageService.displayName(forDirName: dirName)
                 return (name, tokens)
             }
             .sorted { $0.1 > $1.1 }
-            .prefix(6)
+            .prefix(8)
             .map { ($0.0, $0.1) }
     }
 
