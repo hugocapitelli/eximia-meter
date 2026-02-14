@@ -43,6 +43,10 @@ class SettingsViewModel {
         didSet { UserDefaults.standard.set(alertSound.rawValue, forKey: "alertSound") }
     }
 
+    var systemNotificationsEnabled: Bool = true {
+        didSet { UserDefaults.standard.set(systemNotificationsEnabled, forKey: "systemNotificationsEnabled") }
+    }
+
     var hasCompletedOnboarding: Bool = false {
         didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") }
     }
@@ -88,6 +92,7 @@ class SettingsViewModel {
         notificationsEnabled = defaults.object(forKey: "notificationsEnabled") as? Bool ?? true
         soundEnabled = defaults.object(forKey: "soundEnabled") as? Bool ?? true
         inAppPopupEnabled = defaults.object(forKey: "inAppPopupEnabled") as? Bool ?? true
+        systemNotificationsEnabled = defaults.object(forKey: "systemNotificationsEnabled") as? Bool ?? true
         if let soundRaw = defaults.string(forKey: "alertSound"),
            let sound = AlertSound(rawValue: soundRaw) {
             alertSound = sound

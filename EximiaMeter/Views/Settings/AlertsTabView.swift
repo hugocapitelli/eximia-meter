@@ -54,6 +54,16 @@ struct AlertsTabView: View {
                             )
 
                             toggleRow(
+                                icon: settings.systemNotificationsEnabled ? "bell.and.waves.left.and.right.fill" : "bell.and.waves.left.and.right",
+                                iconColor: settings.systemNotificationsEnabled ? ExTokens.Colors.accentPrimary : ExTokens.Colors.textMuted,
+                                label: "macOS Notifications",
+                                value: Binding(
+                                    get: { settings.systemNotificationsEnabled },
+                                    set: { settings.systemNotificationsEnabled = $0 }
+                                )
+                            )
+
+                            toggleRow(
                                 icon: "rectangle.topthird.inset.filled",
                                 iconColor: settings.inAppPopupEnabled ? ExTokens.Colors.accentCyan : ExTokens.Colors.textMuted,
                                 label: "In-App Popup",
@@ -108,13 +118,13 @@ struct AlertsTabView: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
-                // Popup Preview
-                if settings.notificationsEnabled && settings.inAppPopupEnabled {
+                // Preview
+                if settings.notificationsEnabled && (settings.inAppPopupEnabled || settings.systemNotificationsEnabled) {
                     settingsCard {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._12) {
-                            cardHeader(icon: "rectangle.topthird.inset.filled", title: "Popup Preview")
+                            cardHeader(icon: "eye", title: "Test Notifications")
 
-                            Text("Test how in-app alerts look in the popover")
+                            Text("Preview how alerts look and sound")
                                 .font(.system(size: 10))
                                 .foregroundColor(ExTokens.Colors.textMuted)
 
@@ -215,19 +225,28 @@ struct AlertsTabView: View {
             ? "Session usage at 95%! Near limit."
             : "Session usage at 65% — warning level"
 
+        // Play custom sound
         if settings.soundEnabled {
             settings.alertSound.play()
         }
 
-        NotificationCenter.default.post(
-            name: NotificationService.alertTriggeredNotification,
-            object: nil,
-            userInfo: [
-                "type": "preview-\(severity)",
-                "severity": severity,
-                "message": message
-            ]
-        )
+        // In-app banner
+        if settings.inAppPopupEnabled {
+            NotificationCenter.default.post(
+                name: NotificationService.alertTriggeredNotification,
+                object: nil,
+                userInfo: [
+                    "type": "preview-\(severity)",
+                    "severity": severity,
+                    "message": message
+                ]
+            )
+        }
+
+        // macOS system notification
+        if settings.systemNotificationsEnabled {
+            NotificationService.shared.sendTestNotification(severity: severity)
+        }
     }
 
     // MARK: - Toggle Row
