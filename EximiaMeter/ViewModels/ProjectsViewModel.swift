@@ -303,6 +303,39 @@ class ProjectsViewModel {
         UNUserNotificationCenter.current().add(request)
     }
 
+    // MARK: - Bulk Operations
+
+    /// Reset all project colors to the default amber
+    func resetAllColors() {
+        let defaultColor = "#F59E0B"
+        for i in projects.indices {
+            projects[i].colorHex = defaultColor
+        }
+        save()
+    }
+
+    /// Rename a group across all projects
+    func renameGroup(from oldName: String, to newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        for i in projects.indices {
+            if projects[i].group == oldName {
+                projects[i].group = trimmed
+            }
+        }
+        save()
+    }
+
+    /// Delete a group (set all members to nil)
+    func deleteGroup(_ name: String) {
+        for i in projects.indices {
+            if projects[i].group == name {
+                projects[i].group = nil
+            }
+        }
+        save()
+    }
+
     // MARK: - Persistence
 
     private func savePendingRenames() {

@@ -7,8 +7,25 @@ struct ProjectCarouselView: View {
     @State private var isExpanded = true
     @State private var dragOffset: CGFloat = 0
 
-    private let cardsPerPage = 2
     private let swipeThreshold: CGFloat = 50
+
+    private var popoverSize: PopoverSize {
+        appViewModel.settingsViewModel.popoverSize
+    }
+
+    private var cardsPerPage: Int {
+        switch popoverSize {
+        case .compact, .normal, .large: return 2
+        case .extraLarge: return 3
+        }
+    }
+
+    private var cardWidth: CGFloat {
+        let totalWidth = popoverSize.dimensions.width
+        let arrowSpace: CGFloat = 56 // 24px arrow + 4px gap on each side
+        let spacing = CGFloat(cardsPerPage - 1) * ExTokens.Spacing._6
+        return floor((totalWidth - arrowSpace - spacing) / CGFloat(cardsPerPage))
+    }
 
     private var visibleProjects: [Project] {
         appViewModel.projectsViewModel.mainPageProjects()
@@ -73,6 +90,7 @@ struct ProjectCarouselView: View {
                             ProjectCardView(
                                 project: project,
                                 weeklyTokens: projectTokens,
+                                cardWidth: cardWidth,
                                 onLaunch: {
                                     TerminalLauncherService.launch(
                                         project: project,

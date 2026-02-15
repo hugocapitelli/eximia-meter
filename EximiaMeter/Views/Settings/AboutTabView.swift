@@ -179,6 +179,19 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v2.2.0", items: [
+                                "Dashboard: carousel de projetos de volta na página principal",
+                                "Aba Projects: projetos agrupados por grupo com contagem",
+                                "Cards de projeto adaptam largura ao tamanho do popover escolhido",
+                                "Settings: gerenciamento de grupos (renomear, excluir)",
+                                "Settings: botão para resetar cores de todos os projetos",
+                                "Conteúdo adaptativo: tamanhos maiores mostram mais informações"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v2.1.0", items: [
                                 "Topbar: navegação entre Dashboard, Projects e Insights no popover",
                                 "Tamanho do popover configurável: Compact, Normal, Large, Extra Large",

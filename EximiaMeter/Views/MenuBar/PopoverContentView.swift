@@ -178,7 +178,12 @@ struct PopoverContentView: View {
             UsageMetersSection()
                 .padding(.top, ExTokens.Spacing._8)
 
-            HistorySection()
+            ProjectCarouselView()
+
+            // History only on normal+ sizes
+            if popoverSize != .compact {
+                HistorySection()
+            }
         }
         .padding(.bottom, ExTokens.Spacing._12)
     }
@@ -186,18 +191,47 @@ struct PopoverContentView: View {
     // MARK: - Projects Content
 
     private var projectsContent: some View {
-        VStack(spacing: ExTokens.Spacing._12) {
-            ProjectCarouselView()
-                .padding(.top, ExTokens.Spacing._8)
+        VStack(spacing: ExTokens.Spacing._4) {
+            let grouped = appViewModel.projectsViewModel.groupedProjects()
 
-            // Subtle divider
-            Rectangle()
-                .fill(ExTokens.Colors.borderDefault)
-                .frame(height: 1)
-                .padding(.horizontal, ExTokens.Spacing.popoverPadding)
+            ForEach(Array(grouped.enumerated()), id: \.offset) { _, group in
+                let (groupName, groupProjects) = group
 
-            // Per-project usage from UsageMeters
-            if !appViewModel.usageViewModel.perProjectTokens.isEmpty {
+                VStack(alignment: .leading, spacing: ExTokens.Spacing._4) {
+                    // Group header
+                    HStack(spacing: 6) {
+                        Image(systemName: groupName.isEmpty ? "tray.fill" : "folder.fill")
+                            .font(.system(size: 9))
+                        Text(groupName.isEmpty ? "Sem grupo" : groupName)
+                            .font(.system(size: 10, weight: .bold))
+                            .textCase(.uppercase)
+                            .tracking(0.8)
+
+                        Spacer()
+
+                        Text("\(groupProjects.count)")
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .foregroundColor(ExTokens.Colors.accentPrimary)
+                    }
+                    .foregroundColor(ExTokens.Colors.textMuted)
+                    .padding(.horizontal, ExTokens.Spacing.popoverPadding)
+                    .padding(.top, ExTokens.Spacing._8)
+
+                    // Project rows
+                    ForEach(groupProjects) { project in
+                        popoverProjectRow(project)
+                    }
+                }
+            }
+
+            // Per-project usage
+            if !appViewModel.usageViewModel.perProjectTokens.isEmpty && popoverSize != .compact {
+                Rectangle()
+                    .fill(ExTokens.Colors.borderDefault)
+                    .frame(height: 1)
+                    .padding(.horizontal, ExTokens.Spacing.popoverPadding)
+                    .padding(.top, ExTokens.Spacing._8)
+
                 ProjectUsageSection(
                     perProjectTokens: appViewModel.usageViewModel.perProjectTokens,
                     weeklyLimit: appViewModel.settingsViewModel.weeklyTokenLimit,
@@ -207,6 +241,72 @@ struct PopoverContentView: View {
             }
         }
         .padding(.bottom, ExTokens.Spacing._12)
+    }
+
+    private func popoverProjectRow(_ project: Project) -> some View {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(Color(hex: project.colorHex))
+                .frame(width: 8, height: 8)
+
+            Text(project.name)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(ExTokens.Colors.textPrimary)
+                .lineLimit(1)
+
+            Spacer()
+
+            // Token usage
+            let tokens = appViewModel.usageViewModel.perProjectTokens[project.path] ?? 0
+            if tokens > 0 {
+                Text(popoverFormatTokens(tokens))
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(ExTokens.Colors.textTertiary)
+            }
+
+            // Model badge
+            Text(project.selectedModel.shortName)
+                .font(.system(size: 8, weight: .bold))
+                .foregroundColor(ExTokens.Colors.accentPrimary)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 2)
+                .background(ExTokens.Colors.accentPrimary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 3))
+
+            // Launch button
+            Button {
+                TerminalLauncherService.launch(
+                    project: project,
+                    terminal: appViewModel.settingsViewModel.preferredTerminal
+                )
+            } label: {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 8))
+                    .foregroundColor(.black)
+                    .frame(width: 22, height: 22)
+                    .background(ExTokens.Colors.accentPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
+            }
+            .buttonStyle(HoverableButtonStyle())
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(ExTokens.Colors.backgroundCard)
+        .overlay(
+            RoundedRectangle(cornerRadius: ExTokens.Radius.sm)
+                .stroke(ExTokens.Colors.borderDefault, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
+        .padding(.horizontal, ExTokens.Spacing._8)
+    }
+
+    private func popoverFormatTokens(_ count: Int) -> String {
+        if count >= 1_000_000 {
+            return String(format: "%.1fM", Double(count) / 1_000_000)
+        } else if count >= 1_000 {
+            return String(format: "%.0fK", Double(count) / 1_000)
+        }
+        return "\(count)"
     }
 
     // MARK: - Insights Content

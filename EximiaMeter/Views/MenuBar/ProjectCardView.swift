@@ -3,6 +3,7 @@ import SwiftUI
 struct ProjectCardView: View {
     let project: Project
     let weeklyTokens: Int
+    var cardWidth: CGFloat = 180
     var onLaunch: () -> Void
     var onInstallAIOS: (() -> Void)?
     var onModelChange: (ClaudeModel) -> Void
@@ -22,9 +23,10 @@ struct ProjectCardView: View {
         case month = "30d"
     }
 
-    init(project: Project, weeklyTokens: Int = 0, onLaunch: @escaping () -> Void, onInstallAIOS: (() -> Void)? = nil, onModelChange: @escaping (ClaudeModel) -> Void, onOptimizationChange: @escaping (OptimizationLevel) -> Void = { _ in }) {
+    init(project: Project, weeklyTokens: Int = 0, cardWidth: CGFloat = 180, onLaunch: @escaping () -> Void, onInstallAIOS: (() -> Void)? = nil, onModelChange: @escaping (ClaudeModel) -> Void, onOptimizationChange: @escaping (OptimizationLevel) -> Void = { _ in }) {
         self.project = project
         self.weeklyTokens = weeklyTokens
+        self.cardWidth = cardWidth
         self.onLaunch = onLaunch
         self.onInstallAIOS = onInstallAIOS
         self.onModelChange = onModelChange
@@ -244,7 +246,7 @@ struct ProjectCardView: View {
             }
         }
         .padding(10)
-        .frame(width: 180, height: isExpanded ? 220 : 130)
+        .frame(width: cardWidth, height: isExpanded ? 220 : 130)
         .background(ExTokens.Colors.backgroundCard)
         .overlay(
             RoundedRectangle(cornerRadius: ExTokens.Radius.lg)

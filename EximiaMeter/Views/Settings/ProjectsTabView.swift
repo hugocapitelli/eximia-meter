@@ -3,8 +3,11 @@ import SwiftUI
 struct ProjectsTabView: View {
     @EnvironmentObject var appViewModel: AppViewModel
     @State private var showingDiscovery = false
-    @State private var newGroupName = ""
-    @State private var showingNewGroupInput = false
+    @State private var showingResetConfirmation = false
+    @State private var editingGroup: String? = nil
+    @State private var editGroupText = ""
+    @State private var showingNewGroup = false
+    @State private var newGroupText = ""
 
     private var projects: ProjectsViewModel {
         appViewModel.projectsViewModel
@@ -28,6 +31,10 @@ struct ProjectsTabView: View {
                     Spacer()
 
                     HStack(spacing: 8) {
+                        actionButton(icon: "arrow.counterclockwise", label: "Reset Colors") {
+                            showingResetConfirmation = true
+                        }
+
                         actionButton(icon: "magnifyingglass", label: "Discover") {
                             showingDiscovery = true
                         }
@@ -63,7 +70,7 @@ struct ProjectsTabView: View {
                 .padding(.top, ExTokens.Spacing._8)
             }
 
-            // Project List
+            // Content
             if projects.projects.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "folder.badge.questionmark")
@@ -81,6 +88,7 @@ struct ProjectsTabView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
+                    // Project list
                     ForEach(projects.projects.indices, id: \.self) { index in
                         let project = projects.projects[index]
                         let isVisible = project.showOnMainPage
@@ -112,6 +120,28 @@ struct ProjectsTabView: View {
                     .onMove { source, destination in
                         projects.moveProject(from: source, to: destination)
                     }
+
+                    // Group Management section
+                    if !projects.allGroups.isEmpty {
+                        Section {
+                            ForEach(projects.allGroups, id: \.self) { group in
+                                groupManagementRow(group)
+                                    .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowInsets(EdgeInsets(top: 2, leading: 16, bottom: 2, trailing: 16))
+                            }
+                        } header: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "folder.badge.gearshape")
+                                    .font(.system(size: 10))
+                                Text("GERENCIAR GRUPOS")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .tracking(1)
+                            }
+                            .foregroundColor(ExTokens.Colors.textMuted)
+                            .padding(.top, ExTokens.Spacing._8)
+                        }
+                    }
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
@@ -120,6 +150,89 @@ struct ProjectsTabView: View {
         .sheet(isPresented: $showingDiscovery) {
             DiscoverProjectsSheet(projectsViewModel: projects)
         }
+        .alert("Resetar Cores", isPresented: $showingResetConfirmation) {
+            Button("Cancelar", role: .cancel) { }
+            Button("Resetar", role: .destructive) {
+                projects.resetAllColors()
+            }
+        } message: {
+            Text("Todas as cores de projeto serão restauradas para o padrão (amber). Esta ação não pode ser desfeita.")
+        }
+        .alert("Renomear Grupo", isPresented: Binding(
+            get: { editingGroup != nil },
+            set: { if !$0 { editingGroup = nil; editGroupText = "" } }
+        )) {
+            TextField("Novo nome", text: $editGroupText)
+            Button("Cancelar", role: .cancel) { editingGroup = nil; editGroupText = "" }
+            Button("Renomear") {
+                if let group = editingGroup {
+                    projects.renameGroup(from: group, to: editGroupText)
+                }
+                editingGroup = nil
+                editGroupText = ""
+            }
+        } message: {
+            Text("Digite o novo nome para o grupo \"\(editingGroup ?? "")\".")
+        }
+    }
+
+    private func groupManagementRow(_ group: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "folder.fill")
+                .font(.system(size: 11))
+                .foregroundColor(ExTokens.Colors.accentSecondary)
+
+            Text(group)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(ExTokens.Colors.textPrimary)
+
+            // Count of projects in group
+            let count = projects.projects.filter { $0.group == group }.count
+            Text("\(count)")
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundColor(ExTokens.Colors.textTertiary)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .background(ExTokens.Colors.backgroundElevated)
+                .clipShape(RoundedRectangle(cornerRadius: 3))
+
+            Spacer()
+
+            // Rename
+            Button {
+                editGroupText = group
+                editingGroup = group
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.system(size: 10))
+                    .foregroundColor(ExTokens.Colors.accentPrimary)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(HoverableButtonStyle())
+            .help("Renomear grupo")
+
+            // Delete
+            Button {
+                projects.deleteGroup(group)
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 10))
+                    .foregroundColor(ExTokens.Colors.statusCritical)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(HoverableButtonStyle())
+            .help("Remover grupo (projetos voltam para 'Sem grupo')")
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(ExTokens.Colors.backgroundCard)
+        .overlay(
+            RoundedRectangle(cornerRadius: ExTokens.Radius.md)
+                .stroke(ExTokens.Colors.borderDefault, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.md))
     }
 
     private func actionButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
