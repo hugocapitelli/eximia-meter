@@ -179,7 +179,7 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
-                            changelogEntry("v1.8.0", items: [
+                            changelogEntry("v2.0.0", items: [
                                 "Insights: custo estimado (7d), streak de uso, comparativo semanal",
                                 "Sparkline: gráfico de tokens por dia (7 dias)",
                                 "Heatmap: atividade por hora (24h grid)",

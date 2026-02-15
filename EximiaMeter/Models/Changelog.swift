@@ -7,7 +7,7 @@ struct ChangelogVersion {
 
 enum Changelog {
     static let entries: [ChangelogVersion] = [
-        ChangelogVersion(version: "v1.8.0", items: [
+        ChangelogVersion(version: "v2.0.0", items: [
             "Insights: custo estimado (7d), streak de uso, comparativo semanal",
             "Sparkline: gráfico de tokens por dia (7 dias)",
             "Heatmap: atividade por hora (24h grid)",
