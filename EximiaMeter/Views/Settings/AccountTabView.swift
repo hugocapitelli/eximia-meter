@@ -251,8 +251,11 @@ struct AccountTabView: View {
     private func cardHeader(icon: String, title: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(ExTokens.Colors.accentPrimary)
+                .frame(width: 22, height: 22)
+                .background(ExTokens.Colors.accentPrimary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.xs))
 
             Text(title)
                 .font(.system(size: 12, weight: .semibold))

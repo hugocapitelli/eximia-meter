@@ -7,6 +7,14 @@ struct ChangelogVersion {
 
 enum Changelog {
     static let entries: [ChangelogVersion] = [
+        ChangelogVersion(version: "v2.1.0", items: [
+            "Topbar: navegação entre Dashboard, Projects e Insights no popover",
+            "Tamanho do popover configurável: Compact, Normal, Large, Extra Large",
+            "Página de Insights nas configurações com analytics detalhados",
+            "Notificação macOS push quando atualização disponível",
+            "Settings premium: cards com hover glow, ícones com background, badges",
+            "Burn rate e projeção semanal na aba Insights do popover"
+        ]),
         ChangelogVersion(version: "v2.0.0", items: [
             "Insights: custo estimado (7d), streak de uso, comparativo semanal",
             "Sparkline: gráfico de tokens por dia (7 dias)",

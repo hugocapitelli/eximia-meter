@@ -444,8 +444,11 @@ struct AlertsTabView: View {
     private func cardHeader(icon: String, title: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(ExTokens.Colors.accentPrimary)
+                .frame(width: 22, height: 22)
+                .background(ExTokens.Colors.accentPrimary.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.xs))
 
             Text(title)
                 .font(.system(size: 12, weight: .semibold))
@@ -464,15 +467,28 @@ struct HoverableCard<Content: View>: View {
         content()
             .padding(ExTokens.Spacing._16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(ExTokens.Colors.backgroundCard)
+            .background(
+                ZStack {
+                    ExTokens.Colors.backgroundCard
+                    // Subtle top gradient on hover
+                    if isHovered {
+                        LinearGradient(
+                            colors: [ExTokens.Colors.accentPrimary.opacity(0.03), Color.clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                }
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: ExTokens.Radius.lg)
                     .stroke(
-                        isHovered ? ExTokens.Colors.borderHover : ExTokens.Colors.borderDefault,
+                        isHovered ? ExTokens.Colors.accentPrimary.opacity(0.3) : ExTokens.Colors.borderDefault,
                         lineWidth: 1
                     )
             )
             .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.lg))
+            .shadow(color: isHovered ? ExTokens.Colors.accentPrimary.opacity(0.05) : .clear, radius: 8, y: 2)
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.15)) {
                     isHovered = hovering

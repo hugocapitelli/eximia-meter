@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var eventMonitor: Any?
 
     let appViewModel = AppViewModel()
+    private var sizeObserver: Any?
 
     /// Shared reference accessible from views
     static weak var shared: AppDelegate?
@@ -21,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         setupStatusItem()
         setupPopover()
         setupEventMonitor()
+        setupSizeObserver()
 
         if !appViewModel.settingsViewModel.hasCompletedOnboarding {
             showOnboarding()
@@ -187,7 +189,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     private func setupPopover() {
         let popover = NSPopover()
-        popover.contentSize = NSSize(width: 440, height: 680)
+        let size = appViewModel.settingsViewModel.popoverSize.dimensions
+        popover.contentSize = size
         popover.behavior = .transient
         popover.animates = true
 
@@ -197,6 +200,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
         popover.contentViewController = NSHostingController(rootView: contentView)
         self.popover = popover
+    }
+
+    private func setupSizeObserver() {
+        sizeObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name("PopoverSizeChanged"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self, let popover = self.popover else { return }
+            let newSize = self.appViewModel.settingsViewModel.popoverSize.dimensions
+            popover.contentSize = newSize
+        }
     }
 
     func getPopover() -> NSPopover? {
@@ -328,6 +343,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationWillTerminate(_ notification: Notification) {
         if let eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
+        }
+        if let sizeObserver {
+            NotificationCenter.default.removeObserver(sizeObserver)
         }
         appViewModel.stop()
     }

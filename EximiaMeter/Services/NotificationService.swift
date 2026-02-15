@@ -355,6 +355,35 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
         defaults.set(now.timeIntervalSince1970, forKey: kLastActivityDate)
     }
 
+    // MARK: - Update Available Notification
+
+    /// Send a macOS notification when a new app version is available
+    func sendUpdateNotification(version: String) {
+        let lastNotifiedVersion = UserDefaults.standard.string(forKey: "ExNotificationService.lastUpdateNotifiedVersion") ?? ""
+        guard version != lastNotifiedVersion else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "exímIA Meter — Atualização Disponível"
+        content.body = "Versão v\(version) está disponível. Abra o app para atualizar."
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: "update-available-\(version)",
+            content: content,
+            trigger: nil
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                print("[Notifications] update notification failed: \(error)")
+            } else {
+                print("[Notifications] update notification sent for v\(version)")
+            }
+        }
+
+        UserDefaults.standard.set(version, forKey: "ExNotificationService.lastUpdateNotifiedVersion")
+    }
+
     // MARK: - Persistence
 
     private func persistState() {

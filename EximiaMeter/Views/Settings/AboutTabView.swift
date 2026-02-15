@@ -179,6 +179,19 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v2.1.0", items: [
+                                "Topbar: navegação entre Dashboard, Projects e Insights no popover",
+                                "Tamanho do popover configurável: Compact, Normal, Large, Extra Large",
+                                "Página de Insights nas configurações com analytics detalhados",
+                                "Notificação macOS push quando atualização disponível",
+                                "Settings premium: cards com hover glow, ícones com background, badges",
+                                "Burn rate e projeção semanal na aba Insights do popover"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v2.0.0", items: [
                                 "Insights: custo estimado (7d), streak de uso, comparativo semanal",
                                 "Sparkline: gráfico de tokens por dia (7 dias)",

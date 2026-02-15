@@ -4,6 +4,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     case account = "Account"
     case alerts = "Alerts"
     case projects = "Projects"
+    case insights = "Insights"
     case general = "General"
     case about = "About"
 
@@ -14,6 +15,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .account:  return "person.circle"
         case .alerts:   return "bell.badge"
         case .projects: return "folder"
+        case .insights: return "chart.bar.xaxis"
         case .general:  return "gearshape"
         case .about:    return "info.circle"
         }
@@ -49,6 +51,7 @@ struct SettingsWindowView: View {
                 case .account:  AccountTabView()
                 case .alerts:   AlertsTabView()
                 case .projects: ProjectsTabView()
+                case .insights: InsightsTabView()
                 case .general:  GeneralTabView()
                 case .about:    AboutTabView()
                 }

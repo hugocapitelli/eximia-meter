@@ -1,5 +1,43 @@
 import SwiftUI
 
+// MARK: - Popover Size
+
+enum PopoverSize: String, CaseIterable, Identifiable {
+    case compact = "Compact"
+    case normal = "Normal"
+    case large = "Large"
+    case extraLarge = "Extra Large"
+
+    var id: String { rawValue }
+
+    var dimensions: NSSize {
+        switch self {
+        case .compact:    return NSSize(width: 380, height: 540)
+        case .normal:     return NSSize(width: 440, height: 680)
+        case .large:      return NSSize(width: 500, height: 780)
+        case .extraLarge: return NSSize(width: 560, height: 860)
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .compact:    return "rectangle.compress.vertical"
+        case .normal:     return "rectangle"
+        case .large:      return "rectangle.expand.vertical"
+        case .extraLarge: return "arrow.up.left.and.arrow.down.right"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .compact:    return "S"
+        case .normal:     return "M"
+        case .large:      return "L"
+        case .extraLarge: return "XL"
+        }
+    }
+}
+
 @Observable
 class SettingsViewModel {
     var thresholds: ThresholdConfig {
@@ -45,6 +83,14 @@ class SettingsViewModel {
 
     var systemNotificationsEnabled: Bool = true {
         didSet { UserDefaults.standard.set(systemNotificationsEnabled, forKey: "systemNotificationsEnabled") }
+    }
+
+    var popoverSize: PopoverSize = .normal {
+        didSet {
+            UserDefaults.standard.set(popoverSize.rawValue, forKey: "popoverSize")
+            // Notify AppDelegate to resize popover
+            NotificationCenter.default.post(name: Notification.Name("PopoverSizeChanged"), object: nil)
+        }
     }
 
     var hasCompletedOnboarding: Bool = false {
@@ -98,6 +144,11 @@ class SettingsViewModel {
             alertSound = sound
         }
         hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
+
+        if let sizeRaw = defaults.string(forKey: "popoverSize"),
+           let size = PopoverSize(rawValue: sizeRaw) {
+            popoverSize = size
+        }
 
         // Use plan defaults if no custom limits saved
         weeklyTokenLimit = (defaults.integer(forKey: "weeklyTokenLimit")).nonZero ?? claudePlan.weeklyTokenLimit
