@@ -92,6 +92,9 @@ struct ProjectsTabView: View {
                             onModelChange: { model in
                                 projects.updateModel(for: project, model: model)
                             },
+                            onColorChange: { hex in
+                                projects.updateColor(for: project, hex: hex)
+                            },
                             onRemove: {
                                 projects.removeProject(project)
                             }
@@ -281,21 +284,25 @@ struct ProjectSettingsRow: View {
     let isVisible: Bool
     var onToggleVisibility: () -> Void
     var onModelChange: (ClaudeModel) -> Void
+    var onColorChange: ((String) -> Void)?
     var onRemove: () -> Void
 
     @State private var selectedModel: ClaudeModel
+    @State private var selectedColor: Color
     @State private var isHovered = false
     @State private var isUpdatingAIOS = false
     @State private var aiosUpdateResult: Bool? = nil
 
-    init(index: Int, project: Project, isVisible: Bool, onToggleVisibility: @escaping () -> Void, onModelChange: @escaping (ClaudeModel) -> Void, onRemove: @escaping () -> Void) {
+    init(index: Int, project: Project, isVisible: Bool, onToggleVisibility: @escaping () -> Void, onModelChange: @escaping (ClaudeModel) -> Void, onColorChange: ((String) -> Void)? = nil, onRemove: @escaping () -> Void) {
         self.index = index
         self.project = project
         self.isVisible = isVisible
         self.onToggleVisibility = onToggleVisibility
         self.onModelChange = onModelChange
+        self.onColorChange = onColorChange
         self.onRemove = onRemove
         self._selectedModel = State(initialValue: project.selectedModel)
+        self._selectedColor = State(initialValue: Color(hex: project.colorHex))
     }
 
     var body: some View {
@@ -322,10 +329,15 @@ struct ProjectSettingsRow: View {
                 .font(.system(size: 8))
                 .foregroundColor(ExTokens.Colors.textMuted)
 
-            // Folder icon
-            Image(systemName: "folder.fill")
-                .font(.system(size: 12))
-                .foregroundColor(Color(hex: "#3B82F6"))
+            // Color dot (clickable picker)
+            ColorPicker("", selection: $selectedColor, supportsOpacity: false)
+                .labelsHidden()
+                .frame(width: 16, height: 16)
+                .onChange(of: selectedColor) { _, newColor in
+                    if let hex = newColor.toHex() {
+                        onColorChange?(hex)
+                    }
+                }
 
             // Project info
             VStack(alignment: .leading, spacing: 1) {

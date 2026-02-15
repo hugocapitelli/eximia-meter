@@ -12,6 +12,8 @@ struct Project: Identifiable, Codable, Equatable {
     var totalSessions: Int
     var colorHex: String
     var showOnMainPage: Bool
+    var weeklyTokenBudget: Int?
+    var group: String?
 
     init(
         id: UUID = UUID(),
@@ -24,7 +26,9 @@ struct Project: Identifiable, Codable, Equatable {
         lastOpened: Date? = nil,
         totalSessions: Int = 0,
         colorHex: String = "#F59E0B",
-        showOnMainPage: Bool = true
+        showOnMainPage: Bool = true,
+        weeklyTokenBudget: Int? = nil,
+        group: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -37,6 +41,8 @@ struct Project: Identifiable, Codable, Equatable {
         self.totalSessions = totalSessions
         self.colorHex = colorHex
         self.showOnMainPage = showOnMainPage
+        self.weeklyTokenBudget = weeklyTokenBudget
+        self.group = group
     }
 
     /// Encoded directory name in ~/.claude/projects/

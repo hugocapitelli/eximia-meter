@@ -128,6 +128,8 @@ class AppViewModel: ObservableObject {
                         usageData: usageData,
                         thresholds: thresholds
                     )
+                    NotificationService.shared.checkWeeklyReport(usageData: usageData)
+                    NotificationService.shared.checkIdleReturn(usageData: usageData)
                 }
             }
         }

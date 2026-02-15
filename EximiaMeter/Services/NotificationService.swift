@@ -25,6 +25,8 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
     private let kNotifiedThresholds = "ExNotificationService.notifiedThresholds"
     private let kLastNotifiedAt = "ExNotificationService.lastNotifiedAt"
     private let kLastKnownWeeklyUsage = "ExNotificationService.lastKnownWeeklyUsage"
+    private let kLastWeeklyReportDate = "ExNotificationService.lastWeeklyReportDate"
+    private let kLastActivityDate = "ExNotificationService.lastActivityDate"
 
     // Settings — updated from AppViewModel before each check
     var soundEnabled: Bool = true
@@ -271,6 +273,86 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate {
                 )
             }
         }
+    }
+
+    // MARK: - Weekly Summary Report
+
+    /// Send a weekly summary notification on Sundays (once per week)
+    func checkWeeklyReport(usageData: UsageData) {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+
+        // Only fire on Sundays
+        guard cal.component(.weekday, from: today) == 1 else { return }
+
+        let lastReportStr = UserDefaults.standard.string(forKey: kLastWeeklyReportDate) ?? ""
+        let todayStr = ISO8601DateFormatter().string(from: today)
+
+        // Already sent today
+        guard lastReportStr != todayStr else { return }
+
+        let tokensK = usageData.tokens7d >= 1_000_000
+            ? String(format: "%.1fM", Double(usageData.tokens7d) / 1_000_000)
+            : String(format: "%.0fK", Double(usageData.tokens7d) / 1_000)
+        let cost = usageData.formattedWeeklyCost
+        let sessions = usageData.sessions7d
+        let streak = usageData.usageStreak
+
+        var body = "Semana: \(tokensK) tokens · \(sessions) sessões · \(cost)"
+        if streak > 1 {
+            body += " · \(streak) dias seguidos"
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "exímIA Meter — Resumo Semanal"
+        content.body = body
+        content.sound = soundEnabled ? .default : nil
+
+        let request = UNNotificationRequest(
+            identifier: "weekly-report-\(todayStr)",
+            content: content,
+            trigger: nil
+        )
+        UNUserNotificationCenter.current().add(request)
+
+        UserDefaults.standard.set(todayStr, forKey: kLastWeeklyReportDate)
+    }
+
+    // MARK: - Idle Detection
+
+    /// Track activity and detect when user returns after being idle (>4h gap)
+    func checkIdleReturn(usageData: UsageData) {
+        let now = Date()
+        let defaults = UserDefaults.standard
+
+        // Only track if there's actual usage
+        guard usageData.tokens24h > 0 else { return }
+
+        if let lastActivityInterval = defaults.object(forKey: kLastActivityDate) as? Double {
+            let lastActivity = Date(timeIntervalSince1970: lastActivityInterval)
+            let gap = now.timeIntervalSince(lastActivity)
+
+            // If gap > 4 hours, show a welcome-back notification with current state
+            if gap > 14400 {
+                let weeklyPct = Int(usageData.weeklyUsage * 100)
+                let sessionPct = Int(usageData.sessionUsage * 100)
+                let body = "Uso semanal: \(weeklyPct)% · Sessão: \(sessionPct)% · Reset em \(usageData.weeklyResetFormatted)"
+
+                let content = UNMutableNotificationContent()
+                content.title = "exímIA Meter — Bem-vindo de volta!"
+                content.body = body
+                content.sound = nil // Subtle — no sound
+
+                let request = UNNotificationRequest(
+                    identifier: "idle-return-\(Int(now.timeIntervalSince1970))",
+                    content: content,
+                    trigger: nil
+                )
+                UNUserNotificationCenter.current().add(request)
+            }
+        }
+
+        defaults.set(now.timeIntervalSince1970, forKey: kLastActivityDate)
     }
 
     // MARK: - Persistence

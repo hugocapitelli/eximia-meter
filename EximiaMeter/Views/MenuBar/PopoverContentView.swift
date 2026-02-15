@@ -83,6 +83,8 @@ struct PopoverContentView: View {
 
                     UsageMetersSection()
 
+                    InsightsSection()
+
                     HistorySection()
                 }
                 .padding(.bottom, ExTokens.Spacing._12)

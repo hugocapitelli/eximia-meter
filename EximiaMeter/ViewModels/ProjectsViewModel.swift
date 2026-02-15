@@ -96,6 +96,39 @@ class ProjectsViewModel {
         save()
     }
 
+    func updateColor(for project: Project, hex: String) {
+        guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
+        projects[index].colorHex = hex
+        save()
+    }
+
+    func updateBudget(for project: Project, budget: Int?) {
+        guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
+        projects[index].weeklyTokenBudget = budget
+        save()
+    }
+
+    func updateGroup(for project: Project, group: String?) {
+        guard let index = projects.firstIndex(where: { $0.id == project.id }) else { return }
+        projects[index].group = group
+        save()
+    }
+
+    /// All unique group names across projects
+    var allGroups: [String] {
+        Array(Set(projects.compactMap(\.group))).sorted()
+    }
+
+    /// Projects grouped by their group name (nil = "Sem grupo")
+    func groupedProjects() -> [(String, [Project])] {
+        let groups = Dictionary(grouping: projects) { $0.group ?? "" }
+        return groups.sorted { a, b in
+            if a.key.isEmpty { return false }
+            if b.key.isEmpty { return true }
+            return a.key < b.key
+        }
+    }
+
     /// Projects visible on the main popover page
     func mainPageProjects() -> [Project] {
         projects

@@ -46,4 +46,23 @@ enum ClaudeModel: String, Codable, CaseIterable, Identifiable {
         case .haiku: return .haiku
         }
     }
+
+    /// Blended cost per million tokens (USD) — weighted avg of input+output for typical Claude Code usage
+    var costPerMillionTokens: Double {
+        switch self {
+        case .opus: return 30.0
+        case .sonnet: return 6.0
+        case .haiku: return 1.60
+        }
+    }
+
+    /// Resolve a model ID string (e.g. "claude-opus-4-6" or "opus") to a ClaudeModel
+    static func resolve(_ id: String) -> ClaudeModel? {
+        if let exact = ClaudeModel(rawValue: id) { return exact }
+        let lowered = id.lowercased()
+        if lowered.contains("opus") { return .opus }
+        if lowered.contains("sonnet") { return .sonnet }
+        if lowered.contains("haiku") { return .haiku }
+        return nil
+    }
 }

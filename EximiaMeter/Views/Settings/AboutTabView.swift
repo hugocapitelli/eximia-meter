@@ -179,6 +179,22 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.8.0", items: [
+                                "Insights: custo estimado (7d), streak de uso, comparativo semanal",
+                                "Sparkline: gráfico de tokens por dia (7 dias)",
+                                "Heatmap: atividade por hora (24h grid)",
+                                "Detecção de pico: alerta quando uso é 2x+ acima da média",
+                                "Sugestão de modelo: recomenda Sonnet quando Opus domina >60%",
+                                "Export CSV: exportar dados de uso completos",
+                                "Cores customizáveis por projeto (color picker)",
+                                "Resumo semanal: notificação de sumário aos domingos",
+                                "Idle detection: notificação de boas-vindas após 4h+ sem uso"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.7.1", items: [
                                 "Botão AIOS update visível no card do projeto na home page",
                                 "Update direto: banner mostra confirmação e atualiza sem abrir Settings",

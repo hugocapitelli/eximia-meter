@@ -43,6 +43,17 @@ class UsageViewModel {
     var burnRatePerHour: Double = 0.0
     var projectionIsWarning: Bool = false
 
+    // Insights
+    var estimatedWeeklyCostUSD: Double = 0
+    var formattedWeeklyCost: String = ""
+    var usageStreak: Int = 0
+    var peakDetectionMessage: String? = nil
+    var modelSuggestion: String? = nil
+    var weekOverWeekChange: String? = nil
+    var weekOverWeekIsUp: Bool = false
+    var todayVsAverageRatio: Double = 0
+    var last7DaysTokens: [(String, Int)] = []
+
     var lastUpdated: Date = Date()
 
     var usageSourceLabel: String {
@@ -96,6 +107,15 @@ class UsageViewModel {
         weeklyProjection = usageData.weeklyProjection
         burnRatePerHour = usageData.burnRatePerHour
         projectionIsWarning = usageData.projectionIsWarning
+        estimatedWeeklyCostUSD = usageData.estimatedWeeklyCostUSD
+        formattedWeeklyCost = usageData.formattedWeeklyCost
+        usageStreak = usageData.usageStreak
+        peakDetectionMessage = usageData.peakDetectionMessage
+        modelSuggestion = usageData.modelSuggestion
+        weekOverWeekChange = usageData.weekOverWeekChange
+        weekOverWeekIsUp = usageData.weekOverWeekIsUp
+        todayVsAverageRatio = usageData.todayVsAverageRatio
+        last7DaysTokens = usageData.last7DaysTokens
         lastUpdated = usageData.lastUpdated
     }
 }
