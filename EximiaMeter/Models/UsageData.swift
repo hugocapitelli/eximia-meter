@@ -70,7 +70,13 @@ struct UsageData {
         return weeklyUsage / (weeklyTimeElapsed / 3600)
     }
 
-    /// Formatted projection for the UI
+    /// Projected usage at weekly reset (0.0 - 1.0+)
+    var projectedUsageAtReset: Double {
+        guard burnRatePerHour > 0 else { return weeklyUsage }
+        return weeklyUsage + (burnRatePerHour * (weeklyResetTimeRemaining / 3600))
+    }
+
+    /// Formatted projection for the UI — always shows remaining % at reset
     var weeklyProjection: String {
         if weeklyUsage >= 1.0 {
             return "Limite atingido. Reseta em \(weeklyResetFormatted)"
@@ -79,15 +85,15 @@ struct UsageData {
             return ""
         }
 
-        let hoursToLimit = (1.0 - weeklyUsage) / burnRatePerHour
-        let secondsToLimit = hoursToLimit * 3600
+        let projected = projectedUsageAtReset
+        let freePercent = max(0, Int((1.0 - min(projected, 1.0)) * 100))
 
-        if secondsToLimit < weeklyResetTimeRemaining {
-            return "Limite em ~\(formatTimeInterval(secondsToLimit))"
+        if projected >= 1.0 {
+            // Will hit limit before reset
+            let hoursToLimit = (1.0 - weeklyUsage) / burnRatePerHour
+            return "Limite em ~\(formatTimeInterval(hoursToLimit * 3600)) · 0% livre no reset"
         } else {
-            let projectedAtReset = weeklyUsage + (burnRatePerHour * (weeklyResetTimeRemaining / 3600))
-            let freePercent = Int((1.0 - min(projectedAtReset, 1.0)) * 100)
-            return "No reset, terá \(freePercent)% livre"
+            return "No reset, sobrará \(freePercent)% para uso"
         }
     }
 

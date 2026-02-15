@@ -179,6 +179,17 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v1.7.1", items: [
+                                "Botão AIOS update visível no card do projeto na home page",
+                                "Update direto: banner mostra confirmação e atualiza sem abrir Settings",
+                                "Popup de changelog exibido automaticamente após atualização",
+                                "Projeção mostra % livre no reset: \"No reset, sobrará X% para uso\""
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v1.7.0", items: [
                                 "Fix: notificações não re-disparam quando idle em 100% (persistência + histerese 5%)",
                                 "Projeção de uso: burn rate mostra quando vai atingir o limite semanal",

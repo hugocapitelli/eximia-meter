@@ -6,6 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var popover: NSPopover?
     private var settingsWindow: NSWindow?
     private var onboardingWindow: NSWindow?
+    private var changelogWindow: NSWindow?
     private var eventMonitor: Any?
 
     let appViewModel = AppViewModel()
@@ -26,6 +27,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         appViewModel.start()
+
+        // Show changelog popup if version changed since last launch
+        checkForVersionChange()
     }
 
     // MARK: - Dock Visibility
@@ -38,10 +42,65 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     /// Hide from Dock (menu bar only mode)
     private func hideFromDock() {
         // Only hide if no windows are visible
-        let hasVisibleWindows = (settingsWindow?.isVisible == true) || (onboardingWindow?.isVisible == true)
+        let hasVisibleWindows = (settingsWindow?.isVisible == true) || (onboardingWindow?.isVisible == true) || (changelogWindow?.isVisible == true)
         if !hasVisibleWindows {
             NSApp.setActivationPolicy(.accessory)
         }
+    }
+
+    // MARK: - Version Change Detection
+
+    private func checkForVersionChange() {
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        let lastSeenVersion = UserDefaults.standard.string(forKey: "ExApp.lastSeenVersion") ?? ""
+
+        guard !currentVersion.isEmpty else { return }
+
+        if !lastSeenVersion.isEmpty && lastSeenVersion != currentVersion {
+            // Version changed — show changelog
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.showChangelogPopup(version: currentVersion)
+            }
+        }
+
+        UserDefaults.standard.set(currentVersion, forKey: "ExApp.lastSeenVersion")
+    }
+
+    private func showChangelogPopup(version: String) {
+        if let changelogWindow, changelogWindow.isVisible {
+            changelogWindow.makeKeyAndOrderFront(self)
+            NSApp.activate()
+            return
+        }
+
+        let entry = Changelog.entry(for: version) ?? Changelog.latest
+        guard let entry else { return }
+
+        showInDock()
+
+        let changelogView = ChangelogPopupView(
+            version: entry.version,
+            items: entry.items,
+            onDismiss: { [weak self] in
+                self?.changelogWindow?.close()
+                self?.changelogWindow = nil
+                self?.hideFromDock()
+            }
+        )
+        .preferredColorScheme(.dark)
+
+        let hostingController = NSHostingController(rootView: changelogView)
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "What's New"
+        window.setContentSize(NSSize(width: 380, height: 400))
+        window.styleMask = [.titled, .closable]
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        window.makeKeyAndOrderFront(self)
+        NSApp.activate()
+
+        self.changelogWindow = window
     }
 
     // MARK: - Status Item
@@ -284,6 +343,8 @@ extension AppDelegate: NSWindowDelegate {
             settingsWindow = nil
         } else if closingWindow === onboardingWindow {
             onboardingWindow = nil
+        } else if closingWindow === changelogWindow {
+            changelogWindow = nil
         }
 
         // Delay to let the window finish closing

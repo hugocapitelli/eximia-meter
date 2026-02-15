@@ -13,6 +13,8 @@ struct ProjectCardView: View {
     @State private var selectedModel: ClaudeModel
     @State private var selectedOptimization: OptimizationLevel
     @State private var detailPeriod: CardPeriod = .week
+    @State private var isUpdatingAIOS = false
+    @State private var aiosUpdateResult: Bool? = nil
 
     enum CardPeriod: String, CaseIterable {
         case day = "24h"
@@ -151,15 +153,38 @@ struct ProjectCardView: View {
                         }
                     }
 
-                    // Sessions & AIOS badge
+                    // Sessions & AIOS badge + update
                     HStack(spacing: 12) {
                         Label("\(project.totalSessions)", systemImage: "terminal.fill")
                             .font(.system(size: 8))
                             .foregroundColor(ExTokens.Colors.textTertiary)
                         if project.isAIOSProject {
-                            Label("AIOS", systemImage: "cpu")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundColor(ExTokens.Colors.accentPrimary)
+                            Button {
+                                runAIOSUpdate()
+                            } label: {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "cpu")
+                                        .font(.system(size: 7))
+                                    Text("AIOS")
+                                        .font(.system(size: 8, weight: .bold))
+
+                                    if isUpdatingAIOS {
+                                        ProgressView()
+                                            .controlSize(.mini)
+                                            .scaleEffect(0.5)
+                                    } else if let result = aiosUpdateResult {
+                                        Image(systemName: result ? "checkmark" : "xmark")
+                                            .font(.system(size: 7, weight: .bold))
+                                    } else {
+                                        Image(systemName: "arrow.triangle.2.circlepath")
+                                            .font(.system(size: 7))
+                                    }
+                                }
+                                .foregroundColor(aiosButtonColor)
+                            }
+                            .buttonStyle(HoverableButtonStyle())
+                            .disabled(isUpdatingAIOS)
+                            .help("Update AIOS (npx aios-core@latest install)")
                         }
                     }
                 }
@@ -253,6 +278,44 @@ struct ProjectCardView: View {
             return ExTokens.Colors.statusWarning
         } else {
             return ExTokens.Colors.accentPrimary
+        }
+    }
+
+    private var aiosButtonColor: Color {
+        if let result = aiosUpdateResult {
+            return result ? ExTokens.Colors.statusSuccess : ExTokens.Colors.statusCritical
+        }
+        return ExTokens.Colors.accentPrimary
+    }
+
+    private func runAIOSUpdate() {
+        isUpdatingAIOS = true
+        aiosUpdateResult = nil
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            process.arguments = ["npx", "aios-core@latest", "install"]
+            process.currentDirectoryURL = URL(fileURLWithPath: project.path)
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
+
+            var success = false
+            do {
+                try process.run()
+                process.waitUntilExit()
+                success = process.terminationStatus == 0
+            } catch {
+                print("[AIOS] update failed for \(project.name): \(error)")
+            }
+
+            DispatchQueue.main.async {
+                isUpdatingAIOS = false
+                aiosUpdateResult = success
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    aiosUpdateResult = nil
+                }
+            }
         }
     }
 
