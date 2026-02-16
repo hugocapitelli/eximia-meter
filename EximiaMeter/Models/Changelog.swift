@@ -7,6 +7,10 @@ struct ChangelogVersion {
 
 enum Changelog {
     static let entries: [ChangelogVersion] = [
+        ChangelogVersion(version: "v2.2.1", items: [
+            "Fix: credenciais lidas via security CLI — elimina prompt de senha do Keychain",
+            "Cache layer: leitura inicial sem prompt, 'Permitir Sempre' persiste entre builds"
+        ]),
         ChangelogVersion(version: "v2.2.0", items: [
             "Dashboard: carousel de projetos de volta na página principal",
             "Aba Projects: projetos agrupados por grupo com contagem",

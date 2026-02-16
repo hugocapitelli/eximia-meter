@@ -153,8 +153,10 @@ final class AnthropicUsageService {
     }
 
     /// Read from original Claude Code keychain entry and save a copy in app's own entry.
+    /// Uses the `security` CLI tool to avoid Keychain GUI prompts — "Always Allow" on the
+    /// system binary persists permanently, unlike our ad-hoc signed app.
     private func readFromOriginalAndCache() -> Credentials? {
-        guard let raw = readFromKeychain(service: originalService) else { return nil }
+        guard let raw = readViaSecurityCLI(service: originalService) else { return nil }
         let creds = parseKeychainJSON(raw)
 
         // Cache the raw JSON in app's own keychain entry (future reads won't prompt)
@@ -165,7 +167,32 @@ final class AnthropicUsageService {
         return creds
     }
 
-    /// Low-level keychain read for a given service name.
+    /// Read keychain item using /usr/bin/security CLI (Apple-signed, stable "Always Allow").
+    private func readViaSecurityCLI(service: String) -> String? {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
+        process.arguments = ["find-generic-password", "-s", service, "-w"]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return nil
+        }
+
+        guard process.terminationStatus == 0 else { return nil }
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        guard let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !output.isEmpty else { return nil }
+        return output
+    }
+
+    /// Low-level keychain read for app's own entries (no prompt for items we created).
     private func readFromKeychain(service: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

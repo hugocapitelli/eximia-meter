@@ -179,6 +179,15 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v2.2.1", items: [
+                                "Fix: credenciais lidas via security CLI — elimina prompt de senha do Keychain",
+                                "Cache layer: leitura inicial sem prompt, 'Permitir Sempre' persiste entre builds"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v2.2.0", items: [
                                 "Dashboard: carousel de projetos de volta na página principal",
                                 "Aba Projects: projetos agrupados por grupo com contagem",
