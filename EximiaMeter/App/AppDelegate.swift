@@ -140,31 +140,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             let title = NSMutableAttributedString()
 
             // Fonts
-            let labelFont = NSFont.systemFont(ofSize: 9, weight: .medium)
-            let pctFont = NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .bold)
-            let timeFont = NSFont.monospacedDigitSystemFont(ofSize: 8, weight: .regular)
-            let sepFont = NSFont.systemFont(ofSize: 9, weight: .light)
+            let labelFont = NSFont.systemFont(ofSize: 9, weight: .semibold)
+            let pctFont = NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .bold)
+            let timeFont = NSFont.monospacedDigitSystemFont(ofSize: 8.5, weight: .medium)
+            let sepFont = NSFont.systemFont(ofSize: 8, weight: .regular)
 
+            // Colors — labels always white, only values colored
+            let labelColor = NSColor.white.withAlphaComponent(0.7)
+            let sepColor = NSColor.white.withAlphaComponent(0.3)
+            let timeColor = NSColor.white.withAlphaComponent(0.45)
             let sColor = usageColor(usage.sessionUsage)
             let wColor = usageColor(usage.weeklyUsage)
 
             // S: 8% 4h40m
-            title.append(NSAttributedString(string: " S:", attributes: [.font: labelFont, .foregroundColor: sColor.withAlphaComponent(0.5)]))
+            title.append(NSAttributedString(string: " S: ", attributes: [.font: labelFont, .foregroundColor: labelColor]))
             title.append(NSAttributedString(string: "\(sessionPct)%", attributes: [.font: pctFont, .foregroundColor: sColor]))
             let sTime = compactTime(usage.sessionResetFormatted)
             if !sTime.isEmpty {
-                title.append(NSAttributedString(string: " \(sTime)", attributes: [.font: timeFont, .foregroundColor: sColor.withAlphaComponent(0.35)]))
+                title.append(NSAttributedString(string: " \(sTime)", attributes: [.font: timeFont, .foregroundColor: timeColor]))
             }
 
             // |
-            title.append(NSAttributedString(string: " | ", attributes: [.font: sepFont, .foregroundColor: NSColor.labelColor.withAlphaComponent(0.15)]))
+            title.append(NSAttributedString(string: "  ", attributes: [.font: sepFont, .foregroundColor: sepColor]))
 
             // W: 23% 5d16h
-            title.append(NSAttributedString(string: "W:", attributes: [.font: labelFont, .foregroundColor: wColor.withAlphaComponent(0.5)]))
+            title.append(NSAttributedString(string: "W: ", attributes: [.font: labelFont, .foregroundColor: labelColor]))
             title.append(NSAttributedString(string: "\(weeklyPct)%", attributes: [.font: pctFont, .foregroundColor: wColor]))
             let wTime = compactTime(usage.weeklyResetFormatted)
             if !wTime.isEmpty {
-                title.append(NSAttributedString(string: " \(wTime)", attributes: [.font: timeFont, .foregroundColor: wColor.withAlphaComponent(0.35)]))
+                title.append(NSAttributedString(string: " \(wTime)", attributes: [.font: timeFont, .foregroundColor: timeColor]))
             }
 
             button.attributedTitle = title

@@ -186,6 +186,16 @@ struct AboutTabView: View {
 
                     if showChangelog {
                         VStack(alignment: .leading, spacing: ExTokens.Spacing._8) {
+                            changelogEntry("v2.7.0", items: [
+                                "Menu Bar: indicadores redesenhados com hierarquia visual",
+                                "Labels brancos, valores coloridos, tempo compacto e sutil",
+                                "Admin Mode: fix do dialog que não abria (NSAlert nativo)"
+                            ])
+
+                            Rectangle()
+                                .fill(ExTokens.Colors.borderDefault)
+                                .frame(height: 1)
+
                             changelogEntry("v2.6.0", items: [
                                 "Admin Mode: ativação por código secreto com hash SHA256",
                                 "Canal de atualização: Stable (main) ou Beta (beta) para admins",
@@ -714,7 +724,11 @@ struct AboutTabView: View {
 
         // Use GitHub API (no git clone needed — faster and works without git in PATH)
         let branch = settings.updateChannel.branch
-        let url = URL(string: "https://raw.githubusercontent.com/hugocapitelli/eximia-meter/\(branch)/Info.plist")!
+        let urlString = "https://raw.githubusercontent.com/hugocapitelli/eximia-meter/\(branch)/Info.plist"
+        print("[Updates] Checking branch: \(branch), URL: \(urlString)")
+        print("[Updates] Admin mode: \(settings.isAdminMode), Channel: \(settings.updateChannel.rawValue)")
+        print("[Updates] Local version: \(appVersion)")
+        let url = URL(string: urlString)!
         URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 isChecking = false
