@@ -1,5 +1,28 @@
 import SwiftUI
 
+// MARK: - Menu Bar Style
+
+enum MenuBarStyle: String, CaseIterable, Identifiable {
+    case logoOnly = "Logo Only"
+    case withIndicators = "Logo + Usage"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .logoOnly:       return "square.dashed"
+        case .withIndicators: return "chart.bar.fill"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .logoOnly:       return "Logo"
+        case .withIndicators: return "Usage"
+        }
+    }
+}
+
 // MARK: - Popover Size
 
 enum PopoverSize: String, CaseIterable, Identifiable {
@@ -88,8 +111,14 @@ class SettingsViewModel {
     var popoverSize: PopoverSize = .normal {
         didSet {
             UserDefaults.standard.set(popoverSize.rawValue, forKey: "popoverSize")
-            // Notify AppDelegate to resize popover
             NotificationCenter.default.post(name: Notification.Name("PopoverSizeChanged"), object: nil)
+        }
+    }
+
+    var menuBarStyle: MenuBarStyle = .logoOnly {
+        didSet {
+            UserDefaults.standard.set(menuBarStyle.rawValue, forKey: "menuBarStyle")
+            NotificationCenter.default.post(name: Notification.Name("MenuBarStyleChanged"), object: nil)
         }
     }
 
@@ -148,6 +177,11 @@ class SettingsViewModel {
         if let sizeRaw = defaults.string(forKey: "popoverSize"),
            let size = PopoverSize(rawValue: sizeRaw) {
             popoverSize = size
+        }
+
+        if let styleRaw = defaults.string(forKey: "menuBarStyle"),
+           let style = MenuBarStyle(rawValue: styleRaw) {
+            menuBarStyle = style
         }
 
         // Use plan defaults if no custom limits saved

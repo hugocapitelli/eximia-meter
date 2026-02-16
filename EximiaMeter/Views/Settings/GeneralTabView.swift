@@ -39,6 +39,30 @@ struct GeneralTabView: View {
                     }
                 }
 
+                // Menu Bar Style
+                HoverableCard {
+                    VStack(alignment: .leading, spacing: ExTokens.Spacing._12) {
+                        premiumCardHeader(icon: "menubar.rectangle", title: "Menu Bar", badge: settings.menuBarStyle.shortLabel)
+
+                        HStack(spacing: 6) {
+                            ForEach(MenuBarStyle.allCases) { style in
+                                menuBarStyleButton(style)
+                            }
+                        }
+
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 9))
+                                .foregroundColor(ExTokens.Colors.textMuted)
+                            Text(settings.menuBarStyle == .logoOnly
+                                 ? "Apenas o ícone exímIA na barra de menus"
+                                 : "Ícone + indicadores de uso da sessão e semanal")
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundColor(ExTokens.Colors.textMuted)
+                        }
+                    }
+                }
+
                 // App Behavior
                 HoverableCard {
                     VStack(alignment: .leading, spacing: ExTokens.Spacing._12) {
@@ -205,6 +229,43 @@ struct GeneralTabView: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.sm))
                 .contentShape(Rectangle())
+        }
+        .buttonStyle(HoverableButtonStyle())
+    }
+
+    // MARK: - Menu Bar Style Button
+
+    private func menuBarStyleButton(_ style: MenuBarStyle) -> some View {
+        let isSelected = settings.menuBarStyle == style
+
+        return Button {
+            settings.menuBarStyle = style
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: style.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(isSelected ? .black.opacity(0.7) : ExTokens.Colors.textMuted)
+
+                Text(style.shortLabel)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(isSelected ? .black : ExTokens.Colors.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                isSelected
+                    ? ExTokens.Colors.accentPrimary
+                    : ExTokens.Colors.backgroundElevated
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: ExTokens.Radius.md)
+                    .stroke(
+                        isSelected ? ExTokens.Colors.accentPrimary : ExTokens.Colors.borderDefault,
+                        lineWidth: 1
+                    )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: ExTokens.Radius.md))
+            .contentShape(Rectangle())
         }
         .buttonStyle(HoverableButtonStyle())
     }

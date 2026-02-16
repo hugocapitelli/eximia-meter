@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     let appViewModel = AppViewModel()
     private var sizeObserver: Any?
+    private var menuBarStyleObserver: Any?
 
     /// Shared reference accessible from views
     static weak var shared: AppDelegate?
@@ -23,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         setupPopover()
         setupEventMonitor()
         setupSizeObserver()
+        setupMenuBarStyleObserver()
 
         if !appViewModel.settingsViewModel.hasCompletedOnboarding {
             showOnboarding()
@@ -108,13 +110,78 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     // MARK: - Status Item
 
     private func setupStatusItem() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        let style = appViewModel.settingsViewModel.menuBarStyle
+        statusItem = NSStatusBar.system.statusItem(
+            withLength: style == .logoOnly ? NSStatusItem.squareLength : NSStatusItem.variableLength
+        )
 
         if let button = statusItem?.button {
             button.image = createMenuBarIcon()
             button.image?.size = NSSize(width: 18, height: 18)
+            button.imagePosition = style == .logoOnly ? .imageOnly : .imageLeading
             button.action = #selector(togglePopover)
             button.target = self
+        }
+    }
+
+    /// Update the menu bar icon with usage indicators (called after each refresh)
+    func updateMenuBarIndicators() {
+        guard let button = statusItem?.button else { return }
+        let style = appViewModel.settingsViewModel.menuBarStyle
+
+        if style == .withIndicators {
+            statusItem?.length = NSStatusItem.variableLength
+            button.imagePosition = .imageLeading
+
+            let session = appViewModel.usageViewModel.sessionUsage
+            let weekly = appViewModel.usageViewModel.weeklyUsage
+
+            let sessionPct = Int(session * 100)
+            let weeklyPct = Int(weekly * 100)
+
+            let title = NSMutableAttributedString()
+
+            // Session percentage
+            let sessionColor = usageColor(session)
+            title.append(NSAttributedString(string: " \(sessionPct)", attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .medium),
+                .foregroundColor: sessionColor
+            ]))
+
+            // Separator
+            title.append(NSAttributedString(string: " ", attributes: [
+                .font: NSFont.systemFont(ofSize: 4)
+            ]))
+
+            // Weekly percentage
+            let weeklyColor = usageColor(weekly)
+            title.append(NSAttributedString(string: "\(weeklyPct)", attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .medium),
+                .foregroundColor: weeklyColor
+            ]))
+
+            button.attributedTitle = title
+        } else {
+            statusItem?.length = NSStatusItem.squareLength
+            button.imagePosition = .imageOnly
+            button.title = ""
+            button.attributedTitle = NSAttributedString(string: "")
+        }
+    }
+
+    private func usageColor(_ usage: Double) -> NSColor {
+        if usage >= 0.8 { return NSColor.systemRed }
+        if usage >= 0.5 { return NSColor.systemOrange }
+        return NSColor.systemGreen
+    }
+
+    private func setupMenuBarStyleObserver() {
+        menuBarStyleObserver = NotificationCenter.default.addObserver(
+            forName: Notification.Name("MenuBarStyleChanged"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updateMenuBarIndicators()
         }
     }
 
@@ -346,6 +413,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
         if let sizeObserver {
             NotificationCenter.default.removeObserver(sizeObserver)
+        }
+        if let menuBarStyleObserver {
+            NotificationCenter.default.removeObserver(menuBarStyleObserver)
         }
         appViewModel.stop()
     }

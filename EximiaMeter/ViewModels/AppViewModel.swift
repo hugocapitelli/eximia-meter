@@ -119,6 +119,9 @@ class AppViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.usageViewModel.update(from: usageData)
 
+                // Update menu bar indicators
+                AppDelegate.shared?.updateMenuBarIndicators()
+
                 if notificationsEnabled {
                     NotificationService.shared.soundEnabled = self.settingsViewModel.soundEnabled
                     NotificationService.shared.inAppPopupEnabled = self.settingsViewModel.inAppPopupEnabled
