@@ -133,38 +133,41 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             statusItem?.length = NSStatusItem.variableLength
             button.imagePosition = .imageLeading
 
-            let session = appViewModel.usageViewModel.sessionUsage
-            let weekly = appViewModel.usageViewModel.weeklyUsage
-
+            let usage = appViewModel.usageViewModel
+            let session = usage.sessionUsage
+            let weekly = usage.weeklyUsage
             let sessionPct = Int(session * 100)
             let weeklyPct = Int(weekly * 100)
 
             let title = NSMutableAttributedString()
-            let labelAttrs: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 7, weight: .medium),
-                .foregroundColor: NSColor.secondaryLabelColor
-            ]
 
-            // Session: "S" label + percentage
-            let sessionColor = usageColor(session)
-            title.append(NSAttributedString(string: " S ", attributes: labelAttrs))
-            title.append(NSAttributedString(string: "\(sessionPct)", attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .bold),
-                .foregroundColor: sessionColor
-            ]))
+            let labelFont = NSFont.systemFont(ofSize: 9, weight: .medium)
+            let pctFont = NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .bold)
+            let timeFont = NSFont.monospacedDigitSystemFont(ofSize: 8.5, weight: .regular)
+            let sepFont = NSFont.systemFont(ofSize: 8, weight: .regular)
+            let dimColor = NSColor.tertiaryLabelColor
+            let muteColor = NSColor.secondaryLabelColor
+
+            // Session: "S:" + pct + time
+            let sColor = usageColor(session)
+            title.append(NSAttributedString(string: " S:", attributes: [.font: labelFont, .foregroundColor: dimColor]))
+            title.append(NSAttributedString(string: " \(sessionPct)%", attributes: [.font: pctFont, .foregroundColor: sColor]))
+            let sTime = usage.sessionResetFormatted
+            if sTime != "--" {
+                title.append(NSAttributedString(string: " \(sTime)", attributes: [.font: timeFont, .foregroundColor: muteColor]))
+            }
 
             // Separator
-            title.append(NSAttributedString(string: "  ", attributes: [
-                .font: NSFont.systemFont(ofSize: 4)
-            ]))
+            title.append(NSAttributedString(string: "  ", attributes: [.font: sepFont]))
 
-            // Weekly: "W" label + percentage
-            let weeklyColor = usageColor(weekly)
-            title.append(NSAttributedString(string: "W ", attributes: labelAttrs))
-            title.append(NSAttributedString(string: "\(weeklyPct)", attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .bold),
-                .foregroundColor: weeklyColor
-            ]))
+            // Weekly: "W:" + pct + time
+            let wColor = usageColor(weekly)
+            title.append(NSAttributedString(string: "W:", attributes: [.font: labelFont, .foregroundColor: dimColor]))
+            title.append(NSAttributedString(string: " \(weeklyPct)%", attributes: [.font: pctFont, .foregroundColor: wColor]))
+            let wTime = usage.weeklyResetFormatted
+            if wTime != "--" {
+                title.append(NSAttributedString(string: " \(wTime)", attributes: [.font: timeFont, .foregroundColor: muteColor]))
+            }
 
             button.attributedTitle = title
         } else {
