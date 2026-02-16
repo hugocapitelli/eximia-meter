@@ -134,39 +134,39 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             button.imagePosition = .imageLeading
 
             let usage = appViewModel.usageViewModel
-            let session = usage.sessionUsage
-            let weekly = usage.weeklyUsage
-            let sessionPct = Int(session * 100)
-            let weeklyPct = Int(weekly * 100)
+            let sessionPct = Int(usage.sessionUsage * 100)
+            let weeklyPct = Int(usage.weeklyUsage * 100)
 
             let title = NSMutableAttributedString()
 
-            let labelFont = NSFont.systemFont(ofSize: 9, weight: .medium)
-            let pctFont = NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .bold)
-            let timeFont = NSFont.monospacedDigitSystemFont(ofSize: 8.5, weight: .regular)
-            let sepFont = NSFont.systemFont(ofSize: 8, weight: .regular)
-            let dimColor = NSColor.tertiaryLabelColor
-            let muteColor = NSColor.secondaryLabelColor
+            // Fonts
+            let labelFont = NSFont.systemFont(ofSize: 9, weight: .semibold)
+            let pctFont = NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .heavy)
+            let timeFont = NSFont.monospacedDigitSystemFont(ofSize: 8, weight: .regular)
+            let sepFont = NSFont.systemFont(ofSize: 9, weight: .ultraLight)
 
-            // Session: "S:" + pct + time
-            let sColor = usageColor(session)
-            title.append(NSAttributedString(string: " S:", attributes: [.font: labelFont, .foregroundColor: dimColor]))
-            title.append(NSAttributedString(string: " \(sessionPct)%", attributes: [.font: pctFont, .foregroundColor: sColor]))
-            let sTime = usage.sessionResetFormatted
-            if sTime != "--" {
-                title.append(NSAttributedString(string: " \(sTime)", attributes: [.font: timeFont, .foregroundColor: muteColor]))
+            // Colors
+            let labelColor = NSColor.labelColor.withAlphaComponent(0.55)
+            let timeColor = NSColor.labelColor.withAlphaComponent(0.35)
+            let sepColor = NSColor.labelColor.withAlphaComponent(0.2)
+
+            // S: 8% 4h40m
+            title.append(NSAttributedString(string: " S:", attributes: [.font: labelFont, .foregroundColor: labelColor]))
+            title.append(NSAttributedString(string: "\(sessionPct)%", attributes: [.font: pctFont, .foregroundColor: usageColor(usage.sessionUsage)]))
+            let sTime = compactTime(usage.sessionResetFormatted)
+            if !sTime.isEmpty {
+                title.append(NSAttributedString(string: " \(sTime)", attributes: [.font: timeFont, .foregroundColor: timeColor]))
             }
 
-            // Separator
-            title.append(NSAttributedString(string: "  ", attributes: [.font: sepFont]))
+            // |
+            title.append(NSAttributedString(string: " | ", attributes: [.font: sepFont, .foregroundColor: sepColor]))
 
-            // Weekly: "W:" + pct + time
-            let wColor = usageColor(weekly)
-            title.append(NSAttributedString(string: "W:", attributes: [.font: labelFont, .foregroundColor: dimColor]))
-            title.append(NSAttributedString(string: " \(weeklyPct)%", attributes: [.font: pctFont, .foregroundColor: wColor]))
-            let wTime = usage.weeklyResetFormatted
-            if wTime != "--" {
-                title.append(NSAttributedString(string: " \(wTime)", attributes: [.font: timeFont, .foregroundColor: muteColor]))
+            // W: 23% 5d16h
+            title.append(NSAttributedString(string: "W:", attributes: [.font: labelFont, .foregroundColor: labelColor]))
+            title.append(NSAttributedString(string: "\(weeklyPct)%", attributes: [.font: pctFont, .foregroundColor: usageColor(usage.weeklyUsage)]))
+            let wTime = compactTime(usage.weeklyResetFormatted)
+            if !wTime.isEmpty {
+                title.append(NSAttributedString(string: " \(wTime)", attributes: [.font: timeFont, .foregroundColor: timeColor]))
             }
 
             button.attributedTitle = title
@@ -176,6 +176,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             button.title = ""
             button.attributedTitle = NSAttributedString(string: "")
         }
+    }
+
+    /// Compact time: "5d 16h" → "5d16h", "4h 40m" → "4h40m"
+    private func compactTime(_ formatted: String) -> String {
+        guard formatted != "--" else { return "" }
+        return formatted.replacingOccurrences(of: " ", with: "")
     }
 
     private func usageColor(_ usage: Double) -> NSColor {
